@@ -130,7 +130,12 @@ export function Board({
             x: ((event.clientX - rect.left) / rect.width) * 100 - 6.25,
             y: ((event.clientY - rect.top) / rect.height) * 100 - 6.25,
           });
-          (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+          try {
+            (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+          } catch {
+            // Synthetic events (and some touch stacks) have no active pointer to
+            // capture; dragging still works through pointermove on the board.
+          }
         }
         return;
       }

@@ -140,9 +140,15 @@ export function bookContinuations(history: string[]): string[] {
   return [...out];
 }
 
-/** True when `history` still follows at least one book line. */
+/**
+ * True while the played moves are still a prefix of *some* book line, i.e. the
+ * game has not yet left known theory.
+ */
 export function isBookPosition(history: string[]): boolean {
-  return lookupOpening(history) !== null;
+  if (!history.length) return true;
+  return OPENINGS.some(
+    opening => opening.moves.length >= history.length && history.every((san, index) => opening.moves[index] === san),
+  );
 }
 
 /** True when the last move of `history` was itself a book move. */

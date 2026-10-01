@@ -59,8 +59,7 @@
       worker.onerror = event => finish('ERROR ' + (event.message || 'worker error'));
       worker.onmessageerror = () => finish('ERROR message deserialization');
 
-      worker.onmessage = event => {
-        if (typeof event.data !== 'string') {
+      worker.onmessage = event => {        if (typeof event.data !== 'string') {
           // WASM download progress is posted as an object.
           log('progress ' + JSON.stringify(event.data));
           return;
@@ -97,7 +96,12 @@
         }
       };
 
-      setTimeout(() => finish('TIMEOUT'), 25000);
+      // The UCI handshake has to be started by us: the engine only speaks first
+      // with its startup banner.
+      worker.postMessage('uci');
+
+      // Generous: the first load also warms the 1.7MB WASM binary.
+      setTimeout(() => finish('TIMEOUT'), 120000);
     </script>
   </body>
 </html>

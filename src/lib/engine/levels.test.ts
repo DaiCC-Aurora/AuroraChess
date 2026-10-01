@@ -67,8 +67,10 @@ describe('ELO -> engine configuration', () => {
     // Unknown options must never be sent.
     const empty = levelToUciOptions(levelForElo(1600));
     expect(empty.length).toBeGreaterThan(0);
+    // 1600 sits in the 3-line MultiPV band.
+    expect(levelForElo(1600).multiPv).toBe(3);
     expect(levelToUciOptions(levelForElo(1600), options(['option name MultiPV type spin default 1 min 1 max 256']))).toEqual([
-      'setoption name MultiPV value 5',
+      'setoption name MultiPV value 3',
     ]);
   });
 

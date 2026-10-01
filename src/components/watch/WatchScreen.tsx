@@ -180,10 +180,10 @@ export function WatchScreen() {
               type="button"
               className="watch-radial watch-chip"
               style={{
-                width: 'calc(var(--d) * 0.26)',
-                height: 'calc(var(--d) * 0.26)',
+                width: 'calc(var(--d) * 0.24)',
+                height: 'calc(var(--d) * 0.24)',
                 '--angle': `${180 + index * 45}deg`,
-                '--radius': 'calc(var(--d) * 0.34)',
+                '--radius': 'calc(var(--d) * 0.32)',
                 padding: '0.35rem',
               } as CSSProperties}
               onClick={() => promote(piece)}
@@ -212,10 +212,13 @@ export function WatchScreen() {
               type="button"
               className="watch-radial watch-chip"
               style={{
-                width: 'calc(var(--d) * 0.3)',
-                height: 'calc(var(--d) * 0.3)',
+                // 0.26 * 192px = 50px: above the 48px touch-target floor even on
+                // the smallest round watch, and still inside the viewport at
+                // radius 0.33 * D.
+                width: 'calc(var(--d) * 0.26)',
+                height: 'calc(var(--d) * 0.26)',
                 '--angle': `${index * 60}deg`,
-                '--radius': 'calc(var(--d) * 0.36)',
+                '--radius': 'calc(var(--d) * 0.33)',
                 flexDirection: 'column',
                 gap: '0.1rem',
                 fontSize: '0.6rem',

@@ -35,7 +35,9 @@ export const DEFAULT_SETTINGS: Settings = {
   sound: true,
   coachInterrupt: 'mistake',
   coachEnabled: true,
-  watchZoom: 4,
+  // 2 = a 4x4 window (~40px squares on a 192px watch), the legibility
+  // recommendation from docs/reference/watch-ui-notes.md.
+  watchZoom: 2,
   watchBatterySaver: true,
   coachDepth: 14,
 };

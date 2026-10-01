@@ -20,6 +20,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isWatchViewport = useIsWatch();
 
+  // On a round watch the viewport is ~192 CSS px: navigation chrome would eat
+  // the whole screen and push the board out of view, so the shell gets out of
+  // the way and the watch screen owns the glass.
+  if (isWatchViewport) {
+    return <main className="watch-root">{children}</main>;
+  }
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-3 pb-10 pt-4 sm:px-5">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3">

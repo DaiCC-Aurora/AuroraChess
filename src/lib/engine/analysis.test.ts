@@ -15,8 +15,9 @@ import type { EngineInfo } from './uci';
 describe('evaluation maths', () => {
   it('uses the lichess winning-chances sigmoid', () => {
     expect(winProbability(0)).toBeCloseTo(0, 10);
-    expect(winProbability(1000)).toBeCloseTo(0.9993, 4);
-    expect(winProbability(-1000)).toBeCloseTo(-0.9993, 4);
+    // 1000cp (the clamp) is a large but not absolute advantage: ~0.951.
+    expect(winProbability(1000)).toBeCloseTo(0.9509, 4);
+    expect(winProbability(-1000)).toBeCloseTo(-0.9509, 4);
     // Symmetric around equality.
     expect(winProbability(120)).toBeCloseTo(-winProbability(-120), 10);
     // Saturated scores are clamped, so extreme values cannot exceed 1.
@@ -26,6 +27,7 @@ describe('evaluation maths', () => {
   it('converts winning chances to a percentage', () => {
     expect(winPercent(0)).toBeCloseTo(50, 6);
     expect(winPercent(300)).toBeGreaterThan(50);
+    // An equal position is half of the bar, not an empty one.
     expect(evalBarPercent(0)).toBeCloseTo(50, 6);
     expect(evalBarPercent(99_999)).toBeLessThanOrEqual(98);
     expect(evalBarPercent(-99_999)).toBeGreaterThanOrEqual(2);

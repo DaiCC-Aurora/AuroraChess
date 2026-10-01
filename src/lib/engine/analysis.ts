@@ -68,9 +68,9 @@ export function whiteWinProbability(whiteCp: number): number {
   return winProbability(whiteCp);
 }
 
-/** Eval bar fill for white, in percent (0..100). */
+/** Eval bar fill for white, in percent (2..98 so the bar never fully closes). */
 export function evalBarPercent(whiteCp: number): number {
-  return clamp(winProbability(whiteCp) * 100, 2, 98);
+  return clamp(winPercent(whiteCp), 2, 98);
 }
 
 /**

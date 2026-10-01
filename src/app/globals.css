@@ -360,6 +360,17 @@ input[type='range']::-moz-range-thumb {
   --d: min(100vw, 100vh);
 }
 
+/* Chrome-free root used on round watch viewports. */
+.watch-root {
+  display: grid;
+  place-items: center;
+  inline-size: 100vw;
+  block-size: 100dvh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 .watch-stage {
   --margin: 0.052;
   inline-size: var(--d);

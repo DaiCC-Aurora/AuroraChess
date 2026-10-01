@@ -40,6 +40,30 @@ npm start                   # 本地跑生产构建
 > `NEXT_SKIP_TYPECHECK=1 npm run build` 可跳过 Next 自带的类型检查步骤（它需要派生
 > 子进程，某些受限环境不允许）。Vercel 上保持默认，即照常做类型检查。
 
+### 质量门禁与验证结果
+
+```bash
+npm run typecheck   # tsc --noEmit                         → 0 errors
+npm test            # vitest（8 个文件）                    → 88 passed
+npm run engine:smoke# 启动 vendored WASM 跑真 UCI           → 11/11 通过
+npm run build       # next build（6 条路由静态预渲染）        → 通过
+npm start &         # 本地起生产服务
+node scripts/browser-e2e.mjs http://127.0.0.1:3000
+                    # 无头 Edge 真实浏览器端到端              → 19/19 通过
+```
+
+`scripts/browser-e2e.mjs` 只用 Node 内置的 `fetch`/`WebSocket`（无需 Playwright），
+通过 DevTools 协议驱动本机 Edge/Chrome，验证单测覆盖不到的部分：
+
+| 检查 | 内容 |
+| --- | --- |
+| 引擎 Worker | 在真实浏览器里加载 `/engine/stockfish.js`、完成 `uciok`/`readyok`、跑到深度 8、返回 `bestmove` 且 MultiPV ≥ 2 |
+| 对弈闭环 | 在 `/play` 上用真实指针事件点选 `e2→e4` 落子，引擎应手，棋谱出现 `e4 …` 两手 |
+| 教练 | 在 `/coach` 走一步后，讲解面板给出分级与理由 |
+| 手表 | 模拟 192×192 圆屏：进入手表布局、隐藏导航、棋盘每格 ≥30px、径向菜单 6 个控件且每个 ≥48px 并且不越界 |
+
+截图产物在 `.cache/e2e/`（引擎自检、对弈、教练、手表 192/454）。
+
 ### 部署到 Vercel
 
 1. 把仓库推到 GitHub，在 Vercel 里 **Import Project**。

@@ -8,6 +8,7 @@ import {
 } from './findings';
 import {
   canCapture,
+  defendsSquare,
   forkMoves,
   freeCaptures,
   hangingPieces,
@@ -23,7 +24,7 @@ const HANGING_QUEEN = '4k3/8/3p4/4Q3/8/8/8/4K3 b - - 0 1';
 /** White knight can jump to d5, forking the black king (e7) and rook (c7). */
 const FORK = '8/2r1k3/8/8/8/2N5/8/4K3 w - - 0 1';
 /** White knight on e2 shields the king from the rook on e8. */
-const PIN = '4r3/8/8/8/8/8/4N3/4K3 b - - 0 1';
+const PIN = '4r2k/8/8/8/8/8/4N3/4K3 b - - 0 1';
 /** Back-rank mate in one with Ra8#. */
 const BACK_RANK = '6k1/5ppp/8/8/8/8/8/R3K3 w - - 0 1';
 
@@ -45,8 +46,12 @@ describe('position probes', () => {
     const hanging = hangingPieces(game, 'w');
     expect(hanging.map(p => p.square)).toContain('e5');
     expect(hanging[0].type).toBe('q');
-    // Black is not hanging anything here.
-    expect(hangingPieces(game, 'b').map(p => p.square)).not.toContain('d6');
+    // Nothing is hanging in the initial position.
+    expect(hangingPieces(new AuroraGame(), 'w')).toHaveLength(0);
+    expect(hangingPieces(new AuroraGame(), 'b')).toHaveLength(0);
+    // Mutual attacks are reported for both sides: the black pawn on d6 is
+    // attacked by the queen and undefended, even though it can take the queen.
+    expect(hangingPieces(game, 'b').map(p => p.square)).toContain('d6');
   });
 
   it('finds free captures for the side to move', () => {
@@ -125,6 +130,45 @@ describe('coach findings', () => {
     expect(capture).toBeDefined();
     expect(capture!.severity).toBe('good');
     expect(capture!.squares).toContain('e5');
+  });
+
+  it('treats a defended pawn as defended, even though the defender cannot move onto it', () => {
+    // 1.e4 e5 2.d4: the d4 pawn is attacked by the e5 pawn but defended by the
+    // queen on d1. Asking "can the queen move to d4?" would wrongly say no —
+    // the square is occupied by the friendly pawn.
+    const game = AuroraGame.fromMoves(['e4', 'e5', 'd4']);
+    expect(canCapture(game.fen, 'w', 'd1', 'd4')).toBe(false);
+    expect(defendsSquare(game, 'd4', 'w')).toBe(true);
+    expect(hangingPieces(game, 'w').map(p => p.square)).not.toContain('d4');
+  });
+
+  it('still flags genuinely loose pawns', () => {
+    // A pawn attacked by a pawn with nothing defending it.
+    const loose = new AuroraGame('4k3/8/8/2p5/3P4/8/8/4K3 w - - 0 1');
+    expect(hangingPieces(loose, 'w').map(p => p.square)).toContain('d4');
+    // Put a rook on the d-file and the same pawn is defended.
+    const defended = new AuroraGame('4k3/8/8/2p5/3P4/8/8/3RK3 w - - 0 1');
+    expect(defendsSquare(defended, 'd4', 'w')).toBe(true);
+    expect(hangingPieces(defended, 'w').map(p => p.square)).not.toContain('d4');
+  });
+
+  it('does not call pawns hanging when a rook, queen or king covers them', () => {
+    // After 1.e4 d5 2.exd5 Qxd5 the queen attacks a2, d2 and g2 — but all three
+    // are covered (Ra1, Qd1/Ke1, Bf1), so none of them is hanging.
+    const game = AuroraGame.fromMoves(['e4', 'd5', 'exd5', 'Qxd5']);
+    const hanging = hangingPieces(game, 'w').map(p => p.square);
+    expect(hanging).not.toContain('a2');
+    expect(hanging).not.toContain('d2');
+    expect(hanging).not.toContain('g2');
+  });
+
+  it('does not count a pinned defender as a defender', () => {
+    // White Nd2 defends b3 — but only when it is not pinned to the king on d1.
+    const pinned = new AuroraGame('3r3k/8/8/8/2p5/1P6/3N4/3K4 w - - 0 1');
+    expect(defendsSquare(pinned, 'b3', 'w')).toBe(false);
+    // Same position without the pin: the knight really does defend b3.
+    const free = new AuroraGame('r6k/8/8/8/2p5/1P6/3N4/3K4 w - - 0 1');
+    expect(defendsSquare(free, 'b3', 'w')).toBe(true);
   });
 
   it('reports the fork as an opportunity', () => {

@@ -230,9 +230,11 @@ export class AuroraGame {
   }
 
   undo(): MoveRecord | null {
+    // Undoing always clears a manual ending (resign/timeout), even when there
+    // is no move left to take back.
+    this.endOverride = null;
     const undone = this.chess.undo();
     if (!undone) return null;
-    this.endOverride = null;
     return toRecord(undone, this.plyCount);
   }
 

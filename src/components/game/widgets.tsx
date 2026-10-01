@@ -91,6 +91,9 @@ export function MoveList({
                 <button
                   key={move.ply}
                   type="button"
+                  data-testid="move"
+                  data-ply={move.ply}
+                  data-san={move.san}
                   onClick={() => onSelect?.(move.ply)}
                   className="mono rounded px-1.5 py-0.5 text-left font-medium"
                   style={{

@@ -38,6 +38,34 @@ export function cheapestAttacker(game: AuroraGame, square: Square, by: Color): {
   return attackers[0] ?? null;
 }
 
+/**
+ * True when `color` can recapture on `square` — i.e. the piece standing there
+ * is defended.
+ *
+ * The obvious test ("can a friendly piece move to `square`?") is wrong: the
+ * square is occupied by the friendly piece itself, so the move is blocked. The
+ * piece is therefore swapped for an enemy one and we ask whether any friendly
+ * piece can capture it, which also correctly excludes pinned defenders.
+ */
+export function defendsSquare(game: AuroraGame, square: Square, color: Color): boolean {
+  const map = game.pieceMap();
+  const piece = map[square];
+  if (!piece || piece.type === 'k') return false;
+  const enemy: Color = color === 'w' ? 'b' : 'w';
+  const probeMap: Record<string, { type: PieceSymbol; color: Color }> = {
+    ...map,
+    [square]: { type: piece.type, color: enemy },
+  };
+  try {
+    const probe = new AuroraGame(boardMapToFen(probeMap, color, game.fen));
+    return game
+      .attackersOf(square, color)
+      .some(from => from !== square && probe.legalMovesFrom(from).some(move => move.to === square));
+  } catch {
+    return false;
+  }
+}
+
 export interface PieceRef {
   square: Square;
   type: PieceSymbol;
@@ -52,8 +80,7 @@ export function hangingPieces(game: AuroraGame, color: Color): PieceRef[] {
     if (piece.color !== color || piece.type === 'k') continue;
     const attacker = cheapestAttacker(game, piece.square, enemy);
     if (!attacker) continue;
-    const defenders = game.attackersOf(piece.square, color).filter(sq => sq !== piece.square);
-    const defended = defenders.some(d => canCapture(game.fen, color, d, piece.square));
+    const defended = defendsSquare(game, piece.square, color);
     // Undefended, or attacked by something cheaper than the piece itself.
     if (!defended || PIECE_VALUE[attacker.type] < PIECE_VALUE[piece.type] - 20) {
       out.push({ square: piece.square, type: map[piece.square]?.type ?? piece.type });
@@ -71,9 +98,7 @@ export function freeCaptures(game: AuroraGame, color: Color): PieceRef[] {
     if (piece.color !== enemy) continue;
     const attacker = cheapestAttacker(game, piece.square, color);
     if (!attacker) continue;
-    const defenders = game.attackersOf(piece.square, enemy).filter(sq => sq !== piece.square);
-    const defended = defenders.some(d => canCapture(game.fen, enemy, d, piece.square));
-    if (!defended && piece.type !== 'k') {
+    if (!defendsSquare(game, piece.square, enemy) && piece.type !== 'k') {
       out.push({ square: piece.square, type: map[piece.square]?.type ?? piece.type });
     }
   }
@@ -113,10 +138,9 @@ export function forkMoves(game: AuroraGame, color: Color, limit = 3): ForkMove[]
         continue;
       }
       if (!canCapture(probe.fen, color, move.to, piece.square)) continue;
-      const defended = probe
-        .attackersOf(piece.square, enemy)
-        .some(sq => sq !== piece.square && canCapture(probe.fen, enemy, sq, piece.square));
-      if (!defended && PIECE_VALUE[piece.type] >= 300) targets.push({ square: piece.square, type: piece.type });
+      if (!defendsSquare(probe, piece.square, enemy) && PIECE_VALUE[piece.type] >= 300) {
+        targets.push({ square: piece.square, type: piece.type });
+      }
     }
     const materialTargets = targets.filter(t => t.type !== 'k');
     const meaningful = materialTargets.length >= 2 || (targets.some(t => t.type === 'k') && materialTargets.length >= 1);

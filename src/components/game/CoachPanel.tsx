@@ -71,16 +71,16 @@ export function CoachPanel({
   return (
     <div className="flex flex-col gap-3">
       {verdict && (
-        <Panel
-          strong
-          className="animate-rise"
-          title={
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">{t('coach.youPlayed', { move: verdict.san })}</span>
-              <QualityBadge quality={verdict.quality} />
-            </div>
-          }
-        >
+        <div data-testid="coach-verdict" className="animate-rise">
+          <Panel
+            strong
+            title={
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">{t('coach.youPlayed', { move: verdict.san })}</span>
+                <QualityBadge quality={verdict.quality} />
+              </div>
+            }
+          >
           <div className="flex flex-col gap-2 text-sm">
             {verdict.quality === 'best' || verdict.quality === 'book' ? (
               <p>{t('coach.wasBest')}</p>
@@ -120,8 +120,9 @@ export function CoachPanel({
                 </button>
               </div>
             )}
-          </div>
-        </Panel>
+            </div>
+          </Panel>
+        </div>
       )}
 
       {!verdict && (

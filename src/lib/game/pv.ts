@@ -25,9 +25,15 @@ export function lanToSan(game: AuroraGame, lan: string): string | null {
 export function formatMoves(moves: MoveRecord[]): string {
   const parts: string[] = [];
   for (const move of moves) {
-    if (move.color === 'w') parts.push(`${move.moveNumber}.${move.san}`);
-    else if (move.ply === 1) parts.push(`1...${move.san}`);
-    else parts.push(move.san);
+    if (move.color === 'w') {
+      parts.push(`${move.moveNumber}.${move.san}`);
+      continue;
+    }
+    // Black's move only repeats the number when white's move is not shown
+    // (a game that starts from a black-to-move position).
+    const previous = parts[parts.length - 1];
+    const whiteAlreadyShown = previous?.startsWith(`${move.moveNumber}.`) ?? false;
+    parts.push(whiteAlreadyShown ? move.san : `${move.moveNumber}...${move.san}`);
   }
   return parts.join(' ');
 }
