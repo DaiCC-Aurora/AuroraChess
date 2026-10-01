@@ -151,7 +151,7 @@ export function WatchScreen() {
             inset: 0,
             display: 'grid',
             placeItems: 'center',
-            background: 'color-mix(in oklab, #0b1220 78%, transparent)',
+            background: 'color-mix(in oklab, var(--page-bg) 86%, transparent)',
             zIndex: 40,
           }}
         >
@@ -167,7 +167,7 @@ export function WatchScreen() {
 
       {/* radial promotion ring */}
       {promotionRequest && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'color-mix(in oklab, #0b1220 62%, transparent)' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 45, background: 'color-mix(in oklab, var(--page-bg) 74%, transparent)' }}>
           <p
             className="text-muted"
             style={{ position: 'absolute', top: '22%', width: '100%', textAlign: 'center', fontSize: '0.75rem' }}
@@ -191,8 +191,7 @@ export function WatchScreen() {
             >
               <PieceArt
                 type={piece as PieceType}
-                fill={promotionRequest.color === 'w' ? 'var(--piece-white-fill)' : 'var(--piece-black-fill)'}
-                stroke={promotionRequest.color === 'w' ? 'var(--piece-white-stroke)' : 'var(--piece-black-stroke)'}
+                color={promotionRequest.color}
                 style={{ width: '100%', height: '100%' }}
               />
             </button>
@@ -203,7 +202,7 @@ export function WatchScreen() {
       {/* radial menu */}
       {menuOpen && !promotionRequest && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'color-mix(in oklab, #0b1220 70%, transparent)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 40, background: 'color-mix(in oklab, var(--page-bg) 78%, transparent)' }}
           onClick={() => setMenuOpen(false)}
         >
           {MENU_ITEMS.map((item, index) => (

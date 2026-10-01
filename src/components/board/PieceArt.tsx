@@ -1,29 +1,72 @@
+'use client';
+
 import type { CSSProperties } from 'react';
+import { useSettings, type PieceSet } from '@/lib/store/settings';
 
 /**
- * AuroraChess piece artwork.
+ * Piece rendering.
  *
- * A deliberately geometric, flat set drawn on a 45x45 grid (the classic chess
- * piece unit). It is authored rather than imported so that:
- *  - it stays crisp from a 20px watch square to a 90px desktop square,
- *  - both fill and outline are themeable (needed for light/dark themes),
- *  - there is no image request, no font dependency and no licence question.
+ * Two sets are available:
+ *
+ *  - `cburnett` (default) — the exact artwork lichess serves from
+ *    `public/piece/cburnett/*.svg`, by Colin M.L. Burnett. The files are
+ *    vendored unmodified by `scripts/setup-pieces.mjs`; see the LICENSE.txt in
+ *    that folder for attribution.
+ *  - `aurora` — the project's own geometric set, drawn as inline SVG so its
+ *    fill/stroke follow the theme tokens.
  */
 
 export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
+export type PieceColor = 'w' | 'b';
+export type { PieceSet };
+
+export const PIECE_TYPES: PieceType[] = ['p', 'n', 'b', 'r', 'q', 'k'];
+
+const CBURNETT_BASE = '/piece/cburnett';
+
+/** URL of a piece in the lichess set, e.g. `/piece/cburnett/wK.svg`. */
+export function pieceAssetUrl(type: PieceType, color: PieceColor): string {
+  return `${CBURNETT_BASE}/${color}${type.toUpperCase()}.svg`;
+}
 
 export interface PieceArtProps {
   type: PieceType;
-  fill: string;
-  stroke: string;
-  /** Extra classes for the wrapping svg. */
+  color: PieceColor;
+  /** Overrides the user's configured set (used by the settings preview). */
+  set?: PieceSet;
   className?: string;
   style?: CSSProperties;
 }
 
-const BASE = 'M10.5 33.4h24a2.6 2.6 0 0 1 2.6 2.6v1.6a2.6 2.6 0 0 1-2.6 2.6h-24A2.6 2.6 0 0 1 7.9 37.6V36a2.6 2.6 0 0 1 2.6-2.6z';
+export function PieceArt({ type, color, set, className, style }: PieceArtProps) {
+  const { settings } = useSettings();
+  const activeSet = set ?? settings.pieceSet;
 
-function body(type: PieceType, stroke: string) {
+  if (activeSet === 'cburnett') {
+    return (
+      // A plain <img> keeps the lichess artwork byte-identical and lets the
+      // browser cache the twelve files once for the whole app.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={pieceAssetUrl(type, color)}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className={className}
+        style={{ width: '100%', height: '100%', ...style }}
+      />
+    );
+  }
+
+  return <AuroraPiece type={type} color={color} className={className} style={style} />;
+}
+
+// --------------------------------------------------------------- aurora set --
+
+const BASE =
+  'M10.5 33.4h24a2.6 2.6 0 0 1 2.6 2.6v1.6a2.6 2.6 0 0 1-2.6 2.6h-24A2.6 2.6 0 0 1 7.9 37.6V36a2.6 2.6 0 0 1 2.6-2.6z';
+
+function auroraBody(type: PieceType, stroke: string) {
   switch (type) {
     case 'p':
       return (
@@ -59,7 +102,13 @@ function body(type: PieceType, stroke: string) {
           <path d="M16.4 33.4c-.9-6.6-.6-11.4 1.6-15 1.5-2.4 3.6-3.9 6.1-4.8l-1.7-2.7c-.6-1 .1-2.1 1.2-2.1.7 0 1.3.4 1.7 1.1l1.8 3.5c3.6 1.5 6 4.9 6 9.1 0 3.4-.7 7.3-1.1 10.9z" />
           <path d="M24.4 13.6 26.6 8.9 28.4 14z" />
           <circle cx="26.9" cy="17.6" r="1.15" fill={stroke} stroke="none" />
-          <path d="M18.6 24.6c2.6-1.4 5.4-1.9 8.4-1.7" stroke={stroke} strokeWidth="1.3" fill="none" strokeLinecap="round" />
+          <path
+            d="M18.6 24.6c2.6-1.4 5.4-1.9 8.4-1.7"
+            stroke={stroke}
+            strokeWidth="1.3"
+            fill="none"
+            strokeLinecap="round"
+          />
           <path d={BASE} />
         </>
       );
@@ -90,21 +139,24 @@ function body(type: PieceType, stroke: string) {
   }
 }
 
-export function PieceArt({ type, fill, stroke, className, style }: PieceArtProps) {
+export function AuroraPiece({
+  type,
+  color,
+  className,
+  style,
+}: {
+  type: PieceType;
+  color: PieceColor;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const fill = color === 'w' ? 'var(--piece-white-fill)' : 'var(--piece-black-fill)';
+  const stroke = color === 'w' ? 'var(--piece-white-stroke)' : 'var(--piece-black-stroke)';
   return (
-    <svg
-      viewBox="0 0 45 45"
-      className={className}
-      style={style}
-      role="img"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <svg viewBox="0 0 45 45" className={className} style={style} role="img" aria-hidden="true" focusable="false">
       <g fill={fill} stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round">
-        {body(type, stroke)}
+        {auroraBody(type, stroke)}
       </g>
     </svg>
   );
 }
-
-export const PIECE_TYPES: PieceType[] = ['p', 'n', 'b', 'r', 'q', 'k'];

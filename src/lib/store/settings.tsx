@@ -8,6 +8,9 @@ import { loadJson, saveJson, STORAGE_KEYS } from './persist';
 export type ThemeChoice = 'dark' | 'light' | 'system';
 export type InterruptLevel = 'inaccuracy' | 'mistake' | 'blunder';
 export type WatchZoom = 4 | 2 | 8;
+/** `cburnett` is the lichess piece set, `aurora` the built-in geometric one. */
+export type PieceSet = 'cburnett' | 'aurora';
+export type BoardTheme = 'deepseek' | 'classic' | 'ice';
 
 export interface Settings {
   locale: Locale;
@@ -24,11 +27,13 @@ export interface Settings {
   watchBatterySaver: boolean;
   /** Analysis depth for the coach (independent of engine playing strength). */
   coachDepth: number;
+  pieceSet: PieceSet;
+  boardTheme: BoardTheme;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   locale: DEFAULT_LOCALE,
-  theme: 'dark',
+  theme: 'light',
   elo: ENGINE_ELO_DEFAULT,
   playerColor: 'w',
   coordinates: true,
@@ -40,6 +45,8 @@ export const DEFAULT_SETTINGS: Settings = {
   watchZoom: 2,
   watchBatterySaver: true,
   coachDepth: 14,
+  pieceSet: 'cburnett',
+  boardTheme: 'deepseek',
 };
 
 interface SettingsContextValue {
@@ -93,6 +100,11 @@ export function SettingsProvider({ children, initial }: { children: ReactNode; i
   useEffect(() => {
     document.documentElement.lang = settings.locale === 'zh' ? 'zh-CN' : 'en';
   }, [settings.locale]);
+
+  // Board colours/highlights are chosen independently of the UI theme.
+  useEffect(() => {
+    document.documentElement.dataset.board = settings.boardTheme;
+  }, [settings.boardTheme]);
 
   const update = useCallback((patch: Partial<Settings>) => {
     setSettings(prev => {

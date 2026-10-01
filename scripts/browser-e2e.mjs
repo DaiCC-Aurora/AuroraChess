@@ -221,12 +221,22 @@ async function main() {
     await cdp.send('Runtime.enable');
 
     // 1 ---------------------------------------------------------------- engine
+    // Warm the HTTP cache exactly the way the app does (EngineClient preloads
+    // the binary before spawning the worker); this also verifies the asset is
+    // served with the right size, and keeps the worker test free of cold-cache
+    // timing noise.
+    await cdp.navigate(`${BASE}/`);
+    const wasmBytes = await cdp.evaluate(
+      `fetch('/engine/stockfish.wasm').then(r => r.arrayBuffer()).then(b => b.byteLength).catch(() => 0)`,
+    );
+    check('engine WASM is served', wasmBytes > 1_000_000, `${wasmBytes} bytes`);
+
     await cdp.navigate(`${BASE}/engine-selftest.html`);
     let engineResult = '';
     try {
       engineResult = await cdp.waitForExpression(
         '(() => { const el = document.getElementById("result"); return el && el.textContent.startsWith("DONE") ? el.textContent : null; })()',
-        90_000,
+        150_000,
         'engine self-test result',
       );
     } catch (error) {
@@ -247,6 +257,7 @@ async function main() {
     // Start from a clean slate: a restored game would change the legal moves.
     await cdp.navigate(`${BASE}/`);
     await cdp.evaluate('localStorage.clear()');
+    await cdp.screenshot('home.png', { width: 1280, height: 1000 });
     await cdp.navigate(`${BASE}/play`);
     const ready = await cdp
       .waitForExpression('document.body.innerText.includes("引擎就绪") || document.body.innerText.includes("Engine ready")', 60_000, 'engine ready on /play')
@@ -256,6 +267,26 @@ async function main() {
 
     const boardOk = await cdp.evaluate('!!document.querySelector(".board-surface")');
     check('/play renders the board', !!boardOk);
+
+    // The lichess (cburnett) pieces are <img> assets: they must actually load.
+    const pieces = await cdp.evaluate(`(() => {
+      const imgs = [...document.querySelectorAll('.board-piece img')];
+      return {
+        count: imgs.length,
+        loaded: imgs.filter(img => img.complete && img.naturalWidth > 0).length,
+        sample: imgs[0]?.getAttribute('src') ?? '',
+      };
+    })()`);
+    check(
+      'lichess piece set loads (32 pieces)',
+      pieces.count === 32 && pieces.loaded === 32,
+      `${pieces.loaded}/${pieces.count} loaded, e.g. ${pieces.sample}`,
+    );
+
+    const pieceAsset = await cdp.evaluate(
+      `fetch('/piece/cburnett/wK.svg').then(r => r.text().then(t => r.status + ' ' + t.slice(0, 40)))`,
+    );
+    check('piece SVG is served', /^200 <svg/.test(String(pieceAsset)), String(pieceAsset).slice(0, 60));
 
     const moveResult = await cdp.evaluate(playMove('e2', 'e4'));
     check('a move can be played on the board', moveResult === 'ok', String(moveResult));

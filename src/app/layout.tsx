@@ -20,14 +20,14 @@ export const viewport: Viewport = {
   // 5.2% margin so nothing important lands in the clipped corners.
   viewportFit: 'cover',
   themeColor: [
-    { media: '(prefers-color-scheme: dark)', color: '#0b1220' },
-    { media: '(prefers-color-scheme: light)', color: '#f6f8fb' },
+    { media: '(prefers-color-scheme: dark)', color: '#17181c' },
+    { media: '(prefers-color-scheme: light)', color: '#f7f8fa' },
   ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="zh-CN" data-theme="dark" suppressHydrationWarning>
+    <html lang="zh-CN" data-theme="light" data-board="deepseek" suppressHydrationWarning>
       <body>
         <SettingsProvider>
           <AppShell>{children}</AppShell>

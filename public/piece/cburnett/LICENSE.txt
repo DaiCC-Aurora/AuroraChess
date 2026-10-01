@@ -1,0 +1,9 @@
+Piece artwork: "cburnett" chess pieces
+Author:       Colin M.L. Burnett
+Source:       https://github.com/lichess-org/lila/tree/master/public/piece/cburnett
+              (fetched by scripts/setup-pieces.mjs)
+Licence:      GPLv2+ / CC BY-SA 3.0 — see the upstream repository for the
+              authoritative terms. Files are redistributed unmodified.
+
+These SVGs are used as-is as image assets; the rest of AuroraChess is separate
+work that only references them by URL.

@@ -35,6 +35,7 @@ const zh: Dict = {
   'common.on': '开',
   'common.off': '关',
   'common.pieces': '棋子样式',
+  'common.boardTheme': '棋盘配色',
   'common.coordinates': '显示坐标',
   'common.sound': '声音',
   'common.level': '难度',
@@ -45,6 +46,7 @@ const zh: Dict = {
   'common.depth': '深度',
   'common.nodes': '节点',
   'common.score': '评分',
+  'common.moves': '手',
 
   'nav.home': '首页',
   'nav.play': '对弈',
@@ -181,6 +183,12 @@ const zh: Dict = {
   'piece.q': '后',
   'piece.k': '王',
 
+  'pieces.cburnett': 'Lichess 经典',
+  'pieces.aurora': '极光几何',
+  'board.deepseek': '深寻蓝',
+  'board.classic': '经典木色',
+  'board.ice': '冰川灰',
+
   'diag.hanging': '{piece}在{square}上被攻击且没有保护，会被白吃。',
   'diag.canCapture': '可以免费吃掉对方的{piece}（{square}）。',
   'diag.canCaptureMany': '可以白吃对方 {count} 个子。',
@@ -234,6 +242,7 @@ const en: Dict = {
   'common.on': 'On',
   'common.off': 'Off',
   'common.pieces': 'Piece set',
+  'common.boardTheme': 'Board colours',
   'common.coordinates': 'Coordinates',
   'common.sound': 'Sound',
   'common.level': 'Level',
@@ -244,6 +253,7 @@ const en: Dict = {
   'common.depth': 'Depth',
   'common.nodes': 'Nodes',
   'common.score': 'Score',
+  'common.moves': 'moves',
 
   'nav.home': 'Home',
   'nav.play': 'Play',
@@ -379,6 +389,12 @@ const en: Dict = {
   'piece.r': 'rook',
   'piece.q': 'queen',
   'piece.k': 'king',
+
+  'pieces.cburnett': 'Lichess classic',
+  'pieces.aurora': 'Aurora geometric',
+  'board.deepseek': 'DeepSeek blue',
+  'board.classic': 'Classic wood',
+  'board.ice': 'Ice',
 
   'diag.hanging': 'Your {piece} on {square} is attacked and undefended — it can be taken for free.',
   'diag.canCapture': "You can take the {piece} on {square} for free.",

@@ -136,9 +136,9 @@ export function GameScreen({ mode }: { mode: GameMode }) {
                   inset: 0,
                   display: 'grid',
                   placeItems: 'center',
-                  background: 'color-mix(in oklab, #0b1220 72%, transparent)',
+                  background: 'color-mix(in oklab, var(--surface) 82%, transparent)',
                   borderRadius: '0.75rem',
-                  backdropFilter: 'blur(3px)',
+                  backdropFilter: 'blur(4px)',
                 }}
               >
                 <div className="surface-strong flex flex-col items-center gap-2 p-5 text-center">
@@ -242,9 +242,11 @@ export function GameScreen({ mode }: { mode: GameMode }) {
           }
         >
           <MoveList moves={moves} maxHeight="14rem" />
-          <div className="text-muted mt-3 flex items-center justify-between text-xs">
-            <span>{engineName}</span>
-            <span className="mono">{controller.fen.split(' ').slice(0, 2).join(' ')}</span>
+          <div className="text-muted mt-3 flex items-center justify-between gap-2 text-xs">
+            <span className="truncate">{engineName}</span>
+            <span className="shrink-0">
+              {moves.length} {t('common.moves')}
+            </span>
           </div>
         </Panel>
       </aside>

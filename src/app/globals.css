@@ -1,73 +1,127 @@
 @import 'tailwindcss';
 
 /*
- * AuroraChess design tokens.
+ * AuroraChess design system — DeepSeek-style.
  *
- * Two themes, driven by a `data-theme` attribute on <html> so the choice
- * survives SSR without a flash. Board colours follow lichess' verified brown
- * theme light square (#f0d9b5); the dark square and accents are tuned around
- * it for the aurora palette.
+ * Visual language: a single brand blue (#4D6BFE) on clean white surfaces,
+ * 12px radii, hairline borders, flat (non-gradient) fills and generous
+ * whitespace. Light is the default theme, dark is a near-black counterpart.
+ *
+ * Board colours, highlight colours and piece shadows are separate from the UI
+ * theme: they live behind `data-board` so the board can be lichess-brown while
+ * the interface stays DeepSeek-blue (and vice versa).
  */
 @theme {
-  --color-aurora-50: #eefdf7;
-  --color-aurora-100: #d5f9ec;
-  --color-aurora-200: #aef1da;
-  --color-aurora-300: #74e5c3;
-  --color-aurora-400: #35d0a5;
-  --color-aurora-500: #12b58c;
-  --color-aurora-600: #079272;
-  --color-aurora-700: #07755e;
-  --color-aurora-800: #095d4c;
-  --color-aurora-900: #094c40;
-  --color-violet-glow: #8b5cf6;
-  --color-board-light: #f0d9b5;
-  --color-board-dark: #b58863;
-  --color-board-light-alt: #eaeef2;
-  --color-board-dark-alt: #7c93a8;
+  --color-ds-blue: #4d6bfe;
+  --color-ds-blue-strong: #3b5af0;
+  --color-ds-blue-deep: #2b47d6;
+  --color-ds-blue-soft: #eef1ff;
+  --color-ds-slate: #1f2937;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', 'PingFang SC',
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', 'PingFang SC',
     'Microsoft YaHei', sans-serif;
 }
 
+/* ------------------------------------------------------------------ themes -- */
+
 :root {
-  --page-bg: radial-gradient(1200px 800px at 12% -10%, #123c33 0%, transparent 55%),
-    radial-gradient(900px 700px at 100% 0%, #2b1e5c 0%, transparent 45%), #0b1220;
-  --surface: rgba(17, 25, 40, 0.72);
-  --surface-strong: rgba(15, 23, 42, 0.92);
-  --border-subtle: rgba(148, 163, 184, 0.22);
-  --text-primary: #e8eef7;
-  --text-muted: #9fb0c6;
-  --accent: var(--color-aurora-400);
-  --accent-strong: var(--color-aurora-500);
-  --board-light: var(--color-board-light);
-  --board-dark: var(--color-board-dark);
-  --piece-white-fill: #fdfdfd;
-  --piece-white-stroke: #1f2937;
-  --piece-black-fill: #1f2937;
-  --piece-black-stroke: #cbd5e1;
-  --shadow-color: rgba(0, 0, 0, 0.5);
+  /* brand */
+  --accent: var(--color-ds-blue);
+  --accent-strong: var(--color-ds-blue-strong);
+  --accent-soft: var(--color-ds-blue-soft);
+  --accent-contrast: #ffffff;
+
+  /* surfaces (light) */
+  --page-bg: #f7f8fa;
+  --page-glow: radial-gradient(900px 500px at 15% -10%, rgb(77 107 254 / 0.1), transparent 60%);
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --surface-muted: #f4f5f8;
+  --border-subtle: #e7e9ef;
+  --border-strong: #d6d9e2;
+  --text-primary: #1a1a1a;
+  --text-muted: #6b7280;
+  --shadow-color: rgb(15 23 42 / 0.08);
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.12);
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --accent: #6b86ff;
+  --accent-strong: var(--color-ds-blue);
+  --accent-soft: rgb(77 107 254 / 0.16);
+  --accent-contrast: #ffffff;
+
+  --page-bg: #17181c;
+  --page-glow: radial-gradient(900px 500px at 15% -10%, rgb(77 107 254 / 0.16), transparent 60%);
+  --surface: #212329;
+  --surface-strong: #26282f;
+  --surface-muted: #1c1e23;
+  --border-subtle: #2f323a;
+  --border-strong: #3b3f49;
+  --text-primary: #ecedef;
+  --text-muted: #9aa0aa;
+  --shadow-color: rgb(0 0 0 / 0.5);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.35), 0 10px 30px -14px rgb(0 0 0 / 0.6);
+
   color-scheme: dark;
 }
 
-:root[data-theme='light'] {
-  --page-bg: radial-gradient(1000px 700px at 10% -10%, #d8f7ec 0%, transparent 55%),
-    radial-gradient(800px 600px at 100% 0%, #e6e2ff 0%, transparent 45%), #f6f8fb;
-  --surface: rgba(255, 255, 255, 0.82);
-  --surface-strong: rgba(255, 255, 255, 0.96);
-  --border-subtle: rgba(15, 23, 42, 0.12);
-  --text-primary: #0f1b2d;
-  --text-muted: #56657a;
-  --accent: var(--color-aurora-600);
-  --accent-strong: var(--color-aurora-700);
-  --board-light: var(--color-board-light-alt);
-  --board-dark: var(--color-board-dark-alt);
+/* ------------------------------------------------------------------ boards -- */
+
+/* DeepSeek blue (default): neutral cool-grey board so the blue highlights read */
+:root,
+:root[data-board='deepseek'] {
+  --board-light: #eceff5;
+  --board-dark: #a9b3c9;
+  --board-coord: rgb(15 23 42 / 0.42);
+  --hl-last: rgb(77 107 254 / 0.34);
+  --hl-selected: rgb(77 107 254 / 0.42);
+  --hl-legal-dot: radial-gradient(rgb(77 107 254 / 0.6) 19%, transparent 20%);
+  --hl-legal-ring: rgb(77 107 254 / 0.45);
+  --hl-mark: rgb(77 107 254 / 0.95);
+  --hl-arrow: rgb(77 107 254 / 0.95);
+  --hl-check: radial-gradient(circle, rgb(255 82 82 / 0.95) 8%, rgb(226 32 32 / 0.72) 42%, transparent 72%);
+  --piece-shadow: drop-shadow(0 1px 1px rgb(15 23 42 / 0.3));
   --piece-white-fill: #ffffff;
-  --piece-white-stroke: #24313f;
-  --piece-black-fill: #2b3648;
-  --piece-black-stroke: #f1f5f9;
-  --shadow-color: rgba(15, 23, 42, 0.18);
-  color-scheme: light;
+  --piece-white-stroke: #1f2937;
+  --piece-black-fill: #1f2937;
+  --piece-black-stroke: #e5e7eb;
 }
+
+/* lichess brown — the colours the cburnett pieces were drawn for */
+:root[data-board='classic'] {
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+  --board-coord: rgb(0 0 0 / 0.45);
+  --hl-last: rgb(155 199 0 / 0.41);
+  --hl-selected: rgb(20 85 30 / 0.4);
+  --hl-legal-dot: radial-gradient(rgb(20 85 30 / 0.5) 19%, transparent 20%);
+  --hl-legal-ring: rgb(20 85 30 / 0.35);
+  --hl-mark: rgb(21 120 27 / 0.95);
+  --hl-arrow: rgb(21 120 27 / 0.92);
+  --hl-check: radial-gradient(circle, rgb(255 0 0 / 0.95) 8%, rgb(231 0 0 / 0.75) 42%, transparent 72%);
+  --piece-shadow: none;
+}
+
+/* lichess blue-grey */
+:root[data-board='ice'] {
+  --board-light: #dee3e6;
+  --board-dark: #8ca2ad;
+  --board-coord: rgb(15 23 42 / 0.45);
+  --hl-last: rgb(21 120 208 / 0.32);
+  --hl-selected: rgb(21 120 208 / 0.34);
+  --hl-legal-dot: radial-gradient(rgb(21 120 208 / 0.5) 19%, transparent 20%);
+  --hl-legal-ring: rgb(21 120 208 / 0.4);
+  --hl-mark: rgb(21 120 208 / 0.95);
+  --hl-arrow: rgb(21 120 208 / 0.95);
+  --hl-check: radial-gradient(circle, rgb(255 0 0 / 0.95) 8%, rgb(231 0 0 / 0.75) 42%, transparent 72%);
+  --piece-shadow: none;
+}
+
+/* -------------------------------------------------------------------- base -- */
 
 html,
 body {
@@ -75,7 +129,8 @@ body {
 }
 
 body {
-  background: var(--page-bg);
+  background-color: var(--page-bg);
+  background-image: var(--page-glow);
   background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -83,7 +138,13 @@ body {
   overscroll-behavior-y: none;
 }
 
-/* ---------------------------------------------------------------- pieces -- */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+/* ------------------------------------------------------------------ pieces -- */
 
 .board-surface {
   position: relative;
@@ -91,7 +152,8 @@ body {
   aspect-ratio: 1 / 1;
   border-radius: 0.75rem;
   overflow: hidden;
-  box-shadow: 0 18px 40px -20px var(--shadow-color);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -120,6 +182,11 @@ body {
     top 140ms cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
   will-change: left, top;
+}
+
+.board-piece img,
+.board-piece svg {
+  filter: var(--piece-shadow, none);
 }
 
 .board-piece.dragging {
@@ -153,19 +220,26 @@ body {
   pointer-events: none;
 }
 
-/* ------------------------------------------------------------------- ui --- */
+/* -------------------------------------------------------------------- ui --- */
 
 .surface {
   background: var(--surface);
   border: 1px solid var(--border-subtle);
-  border-radius: 1rem;
-  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
 }
 
 .surface-strong {
   background: var(--surface-strong);
   border: 1px solid var(--border-subtle);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-flat {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.75rem;
 }
 
 .text-muted {
@@ -177,23 +251,24 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  border-radius: 0.7rem;
+  border-radius: 0.55rem;
   border: 1px solid var(--border-subtle);
-  padding: 0.55rem 0.9rem;
-  font-weight: 600;
-  font-size: 0.9rem;
+  padding: 0.5rem 0.85rem;
+  font-weight: 500;
+  font-size: 0.875rem;
   color: var(--text-primary);
-  background: transparent;
+  background: var(--surface);
   cursor: pointer;
   transition:
     background 120ms ease,
-    transform 120ms ease,
-    border-color 120ms ease;
+    border-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
 }
 
 .btn:hover:not(:disabled) {
-  background: color-mix(in oklab, var(--accent) 14%, transparent);
-  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  background: var(--surface-muted);
+  border-color: var(--border-strong);
 }
 
 .btn:active:not(:disabled) {
@@ -206,26 +281,40 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-aurora-500), var(--color-aurora-700));
-  border-color: transparent;
-  color: #f8fffd;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--color-aurora-400), var(--color-aurora-600));
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
 }
 
 .btn-ghost {
+  background: transparent;
   border-color: transparent;
+  color: var(--text-muted);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 
 .btn-danger {
-  border-color: color-mix(in oklab, #f87171 45%, transparent);
-  color: #fecaca;
+  color: #dc2626;
+  border-color: color-mix(in oklab, #dc2626 35%, var(--border-subtle));
 }
 
-:root[data-theme='light'] .btn-danger {
-  color: #b91c1c;
+.btn-danger:hover:not(:disabled) {
+  background: color-mix(in oklab, #dc2626 10%, transparent);
+  border-color: color-mix(in oklab, #dc2626 55%, transparent);
+}
+
+:root[data-theme='dark'] .btn-danger {
+  color: #f87171;
 }
 
 .chip {
@@ -234,6 +323,7 @@ body {
   gap: 0.35rem;
   border-radius: 999px;
   border: 1px solid var(--border-subtle);
+  background: var(--surface-muted);
   padding: 0.2rem 0.6rem;
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -241,8 +331,9 @@ body {
 
 .field-label {
   font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
   color: var(--text-muted);
 }
 
@@ -256,36 +347,35 @@ input[type='range'] {
 }
 
 input[type='range']::-webkit-slider-runnable-track {
-  height: 0.4rem;
+  height: 0.35rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-aurora-600), var(--color-violet-glow));
-  opacity: 0.85;
+  background: var(--accent-soft);
 }
 
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  margin-top: -0.35rem;
-  width: 1.1rem;
-  height: 1.1rem;
+  margin-top: -0.4rem;
+  width: 1.15rem;
+  height: 1.15rem;
   border-radius: 999px;
   background: #fff;
-  border: 2px solid var(--accent-strong);
-  box-shadow: 0 2px 6px var(--shadow-color);
+  border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px var(--shadow-color);
 }
 
 input[type='range']::-moz-range-track {
-  height: 0.4rem;
+  height: 0.35rem;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-aurora-600), var(--color-violet-glow));
+  background: var(--accent-soft);
 }
 
 input[type='range']::-moz-range-thumb {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.15rem;
+  height: 1.15rem;
   border-radius: 999px;
   background: #fff;
-  border: 2px solid var(--accent-strong);
+  border: 2px solid var(--accent);
 }
 
 .scroll-area {
@@ -297,6 +387,62 @@ input[type='range']::-moz-range-thumb {
 .mono {
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'tnum';
+}
+
+/* Card used by the mode grid on the home screen. */
+.mode-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.mode-card:hover {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border-subtle));
+  box-shadow: 0 10px 28px -18px color-mix(in oklab, var(--accent) 60%, transparent);
+  transform: translateY(-1px);
+}
+
+.mode-icon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.7rem;
+  font-size: 1.25rem;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex: none;
+}
+
+.nav-link {
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--text-muted);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.nav-link:hover {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.nav-link[aria-current='page'] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 @keyframes fade-rise {
@@ -324,14 +470,14 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 1.6s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -396,7 +542,9 @@ input[type='range']::-moz-range-thumb {
   border-radius: 999px;
   background: var(--surface-strong);
   border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-soft);
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 /* Radial placement: angle 0 = top, clockwise. */
@@ -410,6 +558,7 @@ input[type='range']::-moz-range-thumb {
 /* The zoomed board inside the circular viewport: no own chrome. */
 .watch-inner-board {
   border-radius: 0;
+  border: none;
   box-shadow: none;
 }
 

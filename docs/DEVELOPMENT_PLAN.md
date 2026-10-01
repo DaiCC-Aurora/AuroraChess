@@ -12,7 +12,15 @@
 | M4 教练系统 | ✅ | `findings.test.ts` 22 项 + `openings.test.ts` 7 项（送子/牵制/叉子/杀棋/兵形/开局库） |
 | M5 界面 | ✅ | 无头 Edge 端到端：真实点选落子 → 引擎应手 → 棋谱正确 |
 | M6 手表端 | ✅ | 192×192 圆屏模拟：无导航壳、整屏适配、每格 43px、径向控件 50px 且不越界 |
-| M7 质量与交付 | ✅ | `tsc --noEmit` 0 error、88 项单测、11 项引擎自检、19 项浏览器端到端、README/架构文档 |
+| M7 质量与交付 | ✅ | `tsc --noEmit` 0 error、88 项单测、11 项引擎自检、25 项浏览器端到端、README/架构文档 |
+
+## M8 视觉与棋子（追加需求）
+
+| 需求 | 实现 | 验证 |
+| --- | --- | --- |
+| 改用 lichess 棋子 | `scripts/setup-pieces.mjs` 从 `lichess-org/lila` 原样取回 cburnett 棋组（12 个 SVG，约 8 KB）并提交到 `public/piece/cburnett/`；`PieceArt` 默认渲染该棋组（`<img>`），自绘「极光几何」保留为可选 | 浏览器 E2E：32 个棋子 `<img>` 全部 `naturalWidth > 0`，`/piece/cburnett/wK.svg` 返回 200 |
+| 改成 DeepSeek 风格界面 | 品牌蓝 `#4D6BFE`、浅色优先、白卡片 + 发丝边框 + 12px 圆角、扁平填充（去掉极光渐变）、自绘波浪 logo、设置项分段控件化 | 24→25 项浏览器 E2E 全绿；`docs/screenshots/` 全部更新 |
+| 棋盘配色可切换 | 新增 `data-board`（深寻蓝/经典木色/冰川灰）与 `--hl-*` 高亮变量，UI 主题与棋盘主题解耦 | 木色棋盘自动回到 lichess 绿色高亮 |
 
 最终验证命令与结果见 README「质量门禁与验证结果」。开发过程中发现并修复的真实缺陷：
 d4 兵被误判为"无保护"（防御判定不能直接问"能否走到被占的格子"，改为把该格替换为敌子再判）、

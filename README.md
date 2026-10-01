@@ -2,6 +2,8 @@
 
 一个跑在 **Vercel** 上的国际象棋应用：**能指导下棋**、**能与强度可调（ELO）的引擎对弈**，并且同时适配 **手机 / 网页 / 智能手表（圆形小屏）**。
 
+界面为 **DeepSeek 风格**（品牌蓝 `#4D6BFE`、浅色优先、白卡片 + 细边框 + 圆角），棋盘使用 **lichess 的 cburnett 棋组**。
+
 引擎完全跑在浏览器里（Stockfish 19 Lite WASM，约 1.7 MB），**无后端、无 API Key、可离线**。
 
 ![教练模式](docs/screenshots/coach.png)
@@ -13,6 +15,22 @@
 | ![手表棋盘](docs/screenshots/watch-192.png) | ![手表菜单](docs/screenshots/watch-menu.png) |
 
 ---
+
+## 界面与棋子
+
+| 项目 | 说明 |
+| --- | --- |
+| 视觉语言 | DeepSeek 风格：单一品牌蓝 `#4D6BFE`、浅色优先（默认浅色，深色为近黑）、12px 圆角、发丝边框、扁平填充、无渐变堆叠 |
+| 棋子 | 默认 **lichess cburnett 棋组**（Colin M.L. Burnett），由 `scripts/setup-pieces.mjs` 从 `lichess-org/lila` 原样取回并提交到 `public/piece/cburnett/`，共 12 个 SVG、约 8 KB |
+| 棋子备选 | 内置「极光几何」自绘棋组（可切换），见 `components/board/PieceArt.tsx` |
+| 棋盘配色 | 三套可选：**深寻蓝**（默认，中性冷灰棋盘 + 蓝色高亮）、**经典木色**（lichess 棕，cburnett 原始配色）、**冰川灰** |
+| 高亮 | 最后一步 / 选中 / 合法点 / 将军 / 提示箭头全部走 CSS 变量，随棋盘配色切换；木色棋盘自动用回 lichess 的绿色高亮 |
+| 其他 | 中英双语、浅色/深色/跟随系统、坐标开关、`prefers-reduced-motion`、读屏语义化按钮 |
+
+```bash
+npm run pieces:setup     # 重新拉取 lichess 棋子（已提交，通常无需执行）
+npm run engine:setup     # 重新拷贝 Stockfish WASM（同上）
+```
 
 ## 功能
 
@@ -57,7 +75,7 @@ npm run engine:smoke# 启动 vendored WASM 跑真 UCI           → 11/11 通过
 npm run build       # next build（6 条路由静态预渲染）        → 通过
 npm start &         # 本地起生产服务
 node scripts/browser-e2e.mjs http://127.0.0.1:3000
-                    # 无头 Edge 真实浏览器端到端              → 19/19 通过
+                    # 无头 Edge 真实浏览器端到端              → 25/25 通过
 ```
 
 `scripts/browser-e2e.mjs` 只用 Node 内置的 `fetch`/`WebSocket`（无需 Playwright），
@@ -65,13 +83,15 @@ node scripts/browser-e2e.mjs http://127.0.0.1:3000
 
 | 检查 | 内容 |
 | --- | --- |
+| 引擎资源 | `/engine/stockfish.wasm` 以 1 787 571 字节正确下发 |
 | 引擎 Worker | 在真实浏览器里加载 `/engine/stockfish.js`、完成 `uciok`/`readyok`、跑到深度 8、返回 `bestmove` 且 MultiPV ≥ 2 |
-| 对弈闭环 | 在 `/play` 上用真实指针事件点选 `e2→e4` 落子，引擎应手，棋谱出现 `e4 …` 两手 |
+| 棋子资源 | 棋盘上正好 32 个 `<img>` 且**全部加载成功**（`naturalWidth > 0`），`/piece/cburnett/wK.svg` 返回 200 |
+| 对弈闭环 | 在 `/play` 上用真实指针事件点选 `e2→e4` 落子，引擎应手，棋谱出现 `e4 c5` |
 | 教练 | 在 `/coach` 走一步后，讲解面板给出分级与理由 |
-| 手表 | 模拟 192×192 圆屏：进入手表布局、隐藏导航、棋盘每格 ≥30px、径向菜单 6 个控件且每个 ≥48px 并且不越界 |
+| 复盘 | 在 `/review` 载入上一局并跑完整盘分析，产出准确率统计 |
+| 手表 | 模拟 192×192 圆屏：进入手表布局、隐藏导航、整屏适配、棋盘每格 ≥30px、径向菜单 6 个控件且每个 ≥48px 并且不越界 |
 
-截图产物在 `.cache/e2e/`（引擎自检、对弈、教练、复盘、手表 192/454），仓库内的
-`docs/screenshots/` 保存了压缩后的界面截图。
+截图产物在 `.cache/e2e/`，仓库内的 `docs/screenshots/`（首页、对弈、教练、复盘、手表 192/454）是压缩后的界面截图。
 
 ### 部署到 Vercel
 
@@ -154,8 +174,11 @@ docs/                       开发计划、架构、lichess 与手表调研笔�
 
 - 引擎：**Stockfish 19 Lite WASM**（`stockfish` npm 包，GPL-3.0）。
   `public/engine/LICENSE-stockfish.txt` 随资源分发；Stockfish 版权归其作者所有。
+- 棋子：**cburnett** 棋组，作者 **Colin M.L. Burnett**，取自
+  [lichess-org/lila](https://github.com/lichess-org/lila/tree/master/public/piece/cburnett)，
+  许可 **GPLv2+ / CC BY-SA 3.0**，原样分发；见 `public/piece/cburnett/LICENSE.txt`。
 - 规则与 PGN：**chess.js**（MIT）。
 - 强度模型、胜率公式（`2/(1+e^{-0.00368208·cp})−1`）、失误分级阈值（0.1/0.2/0.3 胜率跌幅）、
   棋盘配色等参考自 **lichess**（AGPL-3.0）的公开实现与文档，本项目仅借鉴其算法与数值，
   未复制其代码；调研出处逐条列在 `docs/reference/lichess-notes.md`。
-- 棋子为项目自绘 SVG（无第三方素材）。
+- 界面视觉参考 DeepSeek 的公开产品风格（配色/圆角/排版），logo 为项目自绘，未使用其商标素材。

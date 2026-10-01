@@ -32,7 +32,9 @@
 | 教练 | `lib/coach` | 开局库、局面探测、发现项（送子/叉子/牵制/王安全/兵形） | chess |
 | 编排 | `lib/game` | `useGameController`（对弈+教练流程）、复盘分析、PV→SAN | engine, coach |
 | 视图 | `components`, `app` | 棋盘、面板、四个模式页面、圆形手表界面 | React |
-| 状态 | `lib/store` | 设置（主题/语言/ELO/教练阈值）、localStorage 持久化 | — |
+| 外观 | `app/globals.css` | DeepSeek 风格设计令牌（品牌蓝 `#4D6BFE`）、`data-theme` 主题、`data-board` 棋盘配色与高亮变量 | — |
+| 棋子 | `public/piece/cburnett`, `components/board/PieceArt.tsx` | lichess cburnett 棋组（`<img>`，原样分发）+ 自绘「极光几何」备选（内联 SVG，跟随主题令牌） | — |
+| 状态 | `lib/store` | 设置（主题/语言/ELO/教练阈值/棋子样式/棋盘配色）、localStorage 持久化 | — |
 
 ## 3. 关键数据流
 
@@ -101,8 +103,18 @@
 
 | 层 | 方式 |
 | --- | --- |
-| 棋规 / UCI 解析 / 评估数学 / 强度映射 / 开局库 / 教练启发式 / PV | Vitest 单测（`src/**/*.test.ts`） |
+| 棋规 / UCI 解析 / 评估数学 / 强度映射 / 开局库 / 教练启发式 / PV | Vitest 单测（`src/**/*.test.ts`，88 项） |
 | UCI 客户端（握手、MultiPV 归并、取消、错误、进度） | Vitest + 伪造 Worker |
 | 真实引擎二进制 | `npm run engine:smoke`：启动 vendored WASM 跑真 UCI，11 项断言 |
 | 生产构建 | `npm run build`（Next 静态预渲染 6 条路由） |
+| 真实浏览器（引擎/棋子/对弈/教练/复盘/手表） | `scripts/browser-e2e.mjs`：Node 内置 fetch+WebSocket 驱动 CDP，25 项断言 |
 | 部署后引擎可用性 | `/engine-selftest.html`（浏览器内真机自检） |
+
+## 7. 外观系统
+
+- **UI 主题**：`data-theme="light|dark"`（含 `system`），令牌集中在 `app/globals.css` 的
+  `:root` 与 `:root[data-theme='dark']`；品牌色只有一个蓝 `#4D6BFE`，浅色为默认。
+- **棋盘配色**：`data-board="deepseek|classic|ice"`，只覆盖棋盘与高亮变量
+  （`--board-*`、`--hl-*`、`--piece-shadow`），因此 UI 主题与棋盘主题可以任意组合。
+- **棋子**：`PieceArt` 按设置渲染 lichess 的 `<img src="/piece/cburnett/{w|b}{KQRBNP}.svg">`
+  或内联的自绘 SVG；两者尺寸/定位完全一致（父容器 12.5% 方格），切换时无需改动棋盘。

@@ -219,7 +219,7 @@ export function Board({
                 width: '12.5%',
                 height: '12.5%',
                 
-                background: 'rgb(155 199 0 / 0.41)',
+                background: 'var(--hl-last)',
               }}
             />
           );
@@ -237,8 +237,7 @@ export function Board({
               top: `${y}%`,
               width: '12.5%',
               height: '12.5%',
-              
-              boxShadow: 'inset 0 0 0 3px rgba(56, 189, 248, 0.9)',
+              boxShadow: 'inset 0 0 0 3px var(--hl-mark)',
               borderRadius: '2px',
             }}
           />
@@ -258,7 +257,7 @@ export function Board({
                 width: '12.5%',
                 height: '12.5%',
                 
-                background: 'rgb(56 189 248 / 0.38)',
+                background: 'var(--hl-selected)',
               }}
             />
           );
@@ -286,8 +285,8 @@ export function Board({
                 width: target.isCapture ? '88%' : '30%',
                 height: target.isCapture ? '88%' : '30%',
                 borderRadius: '999px',
-                background: target.isCapture ? 'transparent' : 'radial-gradient(rgb(20 85 30 / 0.5) 19%, transparent 20%)',
-                boxShadow: target.isCapture ? 'inset 0 0 0 5px rgb(20 85 30 / 0.35)' : undefined,
+                background: target.isCapture ? 'transparent' : 'var(--hl-legal-dot)',
+                boxShadow: target.isCapture ? 'inset 0 0 0 5px var(--hl-legal-ring)' : undefined,
                 display: 'block',
               }}
             />
@@ -308,7 +307,7 @@ export function Board({
                 width: '12.5%',
                 height: '12.5%',
                 
-                background: 'radial-gradient(circle, rgba(255,0,0,0.95) 8%, rgba(231,0,0,0.75) 42%, transparent 72%)',
+                background: 'var(--hl-check)',
               }}
             />
           );
@@ -343,8 +342,7 @@ export function Board({
           >
             <PieceArt
               type={piece.type}
-              fill={piece.color === 'w' ? 'var(--piece-white-fill)' : 'var(--piece-black-fill)'}
-              stroke={piece.color === 'w' ? 'var(--piece-white-stroke)' : 'var(--piece-black-stroke)'}
+              color={piece.color}
               style={{ width: '100%', height: '100%', transform: pieceScale !== 1 ? `scale(${pieceScale})` : undefined }}
             />
           </div>
@@ -356,14 +354,14 @@ export function Board({
         <svg className="board-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ width: '100%', height: '100%' }}>
           <defs>
             <marker id="arrow-hint" markerWidth="4" markerHeight="4" refX="2.4" refY="2" orient="auto">
-              <path d="M0 0 L4 2 L0 4 z" fill="rgba(56,189,248,0.95)" />
+              <path d="M0 0 L4 2 L0 4 z" fill="var(--hl-arrow)" />
             </marker>
             <marker id="arrow-threat" markerWidth="4" markerHeight="4" refX="2.4" refY="2" orient="auto">
               <path d="M0 0 L4 2 L0 4 z" fill="rgba(248,113,113,0.95)" />
             </marker>
           </defs>
           {threat && <Arrow from={threat.from} to={threat.to} orientation={orientation} color="rgba(248,113,113,0.85)" marker="arrow-threat" />}
-          {hint && <Arrow from={hint.from} to={hint.to} orientation={orientation} color="rgba(56,189,248,0.9)" marker="arrow-hint" />}
+          {hint && <Arrow from={hint.from} to={hint.to} orientation={orientation} color="var(--hl-arrow)" marker="arrow-hint" />}
         </svg>
       )}
 
@@ -384,7 +382,7 @@ export function Board({
                   height: 'auto',
                   padding: '1px 3px',
                   fontSize: 'clamp(7px, 1.6vw, 11px)',
-                  color: 'rgb(0 0 0 / 0.5)',
+                  color: 'var(--board-coord)',
                   textAlign: 'right',
                   
                 }}
@@ -406,7 +404,7 @@ export function Board({
                   height: 'auto',
                   padding: '1px 3px',
                   fontSize: 'clamp(7px, 1.6vw, 11px)',
-                  color: 'rgb(0 0 0 / 0.5)',
+                  color: 'var(--board-coord)',
                   
                 }}
               >
@@ -445,8 +443,7 @@ export function Board({
             >
               <PieceArt
                 type={type}
-                fill={promotion.color === 'w' ? 'var(--piece-white-fill)' : 'var(--piece-black-fill)'}
-                stroke={promotion.color === 'w' ? 'var(--piece-white-stroke)' : 'var(--piece-black-stroke)'}
+                color={promotion.color}
                 style={{ width: '100%', height: '100%' }}
               />
             </button>

@@ -48,9 +48,9 @@ export function ProgressBar({ percent, label }: { percent: number; label?: strin
     <div className="w-full">
       <div
         style={{
-          height: '0.4rem',
+          height: '0.35rem',
           borderRadius: '999px',
-          background: 'color-mix(in oklab, var(--accent) 18%, transparent)',
+          background: 'var(--accent-soft)',
           overflow: 'hidden',
         }}
       >
@@ -58,7 +58,7 @@ export function ProgressBar({ percent, label }: { percent: number; label?: strin
           style={{
             width: `${Math.max(0, Math.min(100, percent))}%`,
             height: '100%',
-            background: 'linear-gradient(90deg, var(--color-aurora-500), var(--color-violet-glow))',
+            background: 'var(--accent)',
             transition: 'width 180ms ease',
           }}
         />
@@ -68,6 +68,7 @@ export function ProgressBar({ percent, label }: { percent: number; label?: strin
   );
 }
 
+/** DeepSeek-style segmented control: a white pill on a muted track. */
 export function SegmentedControl<T extends string | number>({
   value,
   options,
@@ -81,8 +82,8 @@ export function SegmentedControl<T extends string | number>({
 }) {
   return (
     <div
-      className="inline-flex flex-wrap gap-1 rounded-xl p-1"
-      style={{ background: 'color-mix(in oklab, var(--text-muted) 12%, transparent)', border: '1px solid var(--border-subtle)' }}
+      className="inline-flex flex-wrap gap-0.5 rounded-[0.6rem] p-0.5"
+      style={{ background: 'var(--surface-muted)', border: '1px solid var(--border-subtle)' }}
       role="tablist"
     >
       {options.map(option => {
@@ -95,13 +96,15 @@ export function SegmentedControl<T extends string | number>({
             aria-selected={active}
             title={option.title}
             onClick={() => onChange(option.value)}
-            className="rounded-lg font-semibold transition-colors"
+            className="rounded-[0.45rem] transition-colors"
             style={{
-              padding: size === 'sm' ? '0.25rem 0.6rem' : '0.4rem 0.8rem',
-              fontSize: size === 'sm' ? '0.75rem' : '0.85rem',
-              background: active ? 'linear-gradient(135deg, var(--color-aurora-500), var(--color-aurora-700))' : 'transparent',
-              color: active ? '#f8fffd' : 'var(--text-muted)',
-              border: 'none',
+              padding: size === 'sm' ? '0.2rem 0.55rem' : '0.32rem 0.7rem',
+              fontSize: size === 'sm' ? '0.75rem' : '0.8125rem',
+              fontWeight: active ? 600 : 500,
+              background: active ? 'var(--surface)' : 'transparent',
+              color: active ? 'var(--accent)' : 'var(--text-muted)',
+              boxShadow: active ? '0 1px 2px var(--shadow-color)' : 'none',
+              border: active ? '1px solid var(--border-subtle)' : '1px solid transparent',
               cursor: 'pointer',
             }}
           >

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "engine:setup": "node scripts/setup-engine.mjs",
     "engine:smoke": "node scripts/engine-smoke.mjs",
+    "pieces:setup": "node scripts/setup-pieces.mjs",
     "verify": "npm run typecheck && npm test && npm run engine:smoke && npm run build"
   },
   "dependencies": {
