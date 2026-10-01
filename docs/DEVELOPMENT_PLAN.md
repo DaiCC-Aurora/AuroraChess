@@ -1,26 +1,38 @@
 # AuroraChess 开发计划
 
-> 目标：一个跑在 Vercel 上的国际象棋应用 —— 能**指导下棋**、能**和可调 ELO 强度的引擎对弈**，同时适配**手机 / 网页 / 手表（圆形小屏）**。
+> 目标：一个跑在 Vercel 上的国际象棋应用 —— 能**和可调 ELO 强度的引擎对弈**、每步即时评级、可复盘、可要提示，同时适配**手机 / 网页 / 手表（圆形小屏）**。
 
-## 状态：M1–M7 已全部完成并通过验证
+## 状态：M1–M9 已全部完成并通过验证
 
 | 里程碑 | 状态 | 验证方式 |
 | --- | --- | --- |
-| M1 脚手架与工程基线 | ✅ | `next build`：6 条路由静态预渲染；沙箱内缓存/临时目录本地化 |
-| M2 棋类核心 | ✅ | `game.test.ts` 15 项（合法着法、将杀、逼和、三次重复、升变、PGN 往返、UCI position） |
-| M3 引擎层 | ✅ | `uci.test.ts` 9 项 + `client.test.ts` 7 项（伪 Worker）+ `engine:smoke` 11 项真机 UCI |
-| M4 教练系统 | ✅ | `findings.test.ts` 22 项 + `openings.test.ts` 7 项（送子/牵制/叉子/杀棋/兵形/开局库） |
-| M5 界面 | ✅ | 无头 Edge 端到端：真实点选落子 → 引擎应手 → 棋谱正确 |
-| M6 手表端 | ✅ | 192×192 圆屏模拟：无导航壳、整屏适配、每格 43px、径向控件 50px 且不越界 |
-| M7 质量与交付 | ✅ | `tsc --noEmit` 0 error、88 项单测、11 项引擎自检、25 项浏览器端到端、README/架构文档 |
+| M1 脚手架与工程基线 | 完成 | `next build`：6 条路由静态预渲染；沙箱内缓存/临时目录本地化 |
+| M2 棋类核心 | 完成 | `game.test.ts` 15 项（合法着法、将杀、逼和、三次重复、升变、PGN 往返、UCI position） |
+| M3 引擎层 | 完成 | `uci.test.ts` 9 项 + `client.test.ts` 7 项（伪 Worker）+ `engine:smoke` 11 项真机 UCI |
+| M4 教练系统 | 完成 | `findings.test.ts` 22 项 + `openings.test.ts` 7 项（送子/牵制/叉子/杀棋/兵形/开局库） |
+| M5 界面 | 完成 | 无头 Edge 端到端：真实点选落子 → 引擎应手 → 棋谱正确 |
+| M6 手表端 | 完成 | 192×192 圆屏模拟：无导航壳、整屏适配、每格 43px、径向控件 50px 且不越界 |
+| M7 质量与交付 | 完成 | `tsc --noEmit` 0 error、88 项单测、11 项引擎自检、32 项浏览器端到端、README/架构文档 |
 
 ## M8 视觉与棋子（追加需求）
 
 | 需求 | 实现 | 验证 |
 | --- | --- | --- |
-| 改用 lichess 棋子 | `scripts/setup-pieces.mjs` 从 `lichess-org/lila` 原样取回 cburnett 棋组（12 个 SVG，约 8 KB）并提交到 `public/piece/cburnett/`；`PieceArt` 默认渲染该棋组（`<img>`），自绘「极光几何」保留为可选 | 浏览器 E2E：32 个棋子 `<img>` 全部 `naturalWidth > 0`，`/piece/cburnett/wK.svg` 返回 200 |
-| 改成 DeepSeek 风格界面 | 品牌蓝 `#4D6BFE`、浅色优先、白卡片 + 发丝边框 + 12px 圆角、扁平填充（去掉极光渐变）、自绘波浪 logo、设置项分段控件化 | 24→25 项浏览器 E2E 全绿；`docs/screenshots/` 全部更新 |
+| 改用 lichess 棋子 | `scripts/setup-pieces.mjs` 从 `lichess-org/lila` 原样取回 cburnett 棋组（12 个 SVG，约 8 KB）并提交到 `public/piece/cburnett/`；`PieceArt` 默认渲染该棋组（`<img>`），自绘「几何棋子」保留为可选 | 浏览器 E2E：32 个棋子 `<img>` 全部 `naturalWidth > 0`，`/piece/cburnett/wK.svg` 返回 200 |
+| 改成 DeepSeek 风格界面 | 品牌蓝 `#4D6BFE`、浅色优先、白卡片 + 发丝边框 + 12px 圆角、扁平填充（去掉彩色渐变）、自绘波浪 logo、设置项分段控件化 | 浏览器 E2E 全绿；`docs/screenshots/` 全部更新 |
 | 棋盘配色可切换 | 新增 `data-board`（深寻蓝/经典木色/冰川灰）与 `--hl-*` 高亮变量，UI 主题与棋盘主题解耦 | 木色棋盘自动回到 lichess 绿色高亮 |
+
+## M9 文案精简与缺陷修复（追加需求）
+
+| 需求 | 实现 | 验证 |
+| --- | --- | --- |
+| 去除所有 emoji | 棋组符号、模式入口、主题开关、复盘翻页、手表径向菜单全部换成内联 SVG；`QUALITY_META` 的书本符号换成 ≡；文档里的对勾等一并清理 | E2E 新增「五个页面渲染文本不含 `Extended_Pictographic`」检查，另有脚本扫描 `src/public/scripts/docs` 全量源码 |
+| 去除每一步的解释 | 教练面板从「评级 + 为什么 + 损失分值 + 推荐着法 + 局面提示」精简为**一行评级**（仅在超过中断阈值时附带悔棋重走/继续/显示最佳）；移除控制器里的 `analysePosition` 调用与棋盘标注方块；首页与设置里的说明段、强度说明句一并删除 | E2E：`/coach` 走子后面板只显示 `d4 良好` |
+| 去除「极光棋」 | 顶栏副标题与页脚不再显示 `app.short`；`app.tagline` 去掉「极光国际象棋」；棋子备选名「极光几何」改为「几何棋子」 | 界面文本检查 |
+| 修复「提示」无效 | 根因：`requestHint` 的 `useCallback` 漏了 `engineReady` 依赖，引擎加载完成前创建的闭包把 `engineReady = false` 永久捕获，点击后直接 `return`。补上依赖即修复 | E2E：点击「提示」后棋盘出现推荐着法箭头 |
+
+> 启发式解释引擎（`lib/coach/findings.ts`、`probe.ts`）与它的 22 项单测保留，但按当前设计不在
+> 界面展示；需要时可在 `useGameController` 里重新接回。
 
 最终验证命令与结果见 README「质量门禁与验证结果」。开发过程中发现并修复的真实缺陷：
 d4 兵被误判为"无保护"（防御判定不能直接问"能否走到被占的格子"，改为把该格替换为敌子再判）、
@@ -51,7 +63,7 @@ GitHub 直连被网络策略拦截，改由 harness 的网络通道定向抓取 
 
 ## 2. 里程碑与步骤
 
-### M1 脚手架与工程基线 ✅/进行中
+### M1 脚手架与工程基线 完成
 1. `package.json` / `tsconfig.json` / `next.config.ts` / Tailwind v4 / `.npmrc`（本地化缓存，规避沙箱外写）。
 2. 沙箱适配：npm 缓存与 tmp 指向项目内 `.cache/`，安装用 `--ignore-scripts`（无包需要 postinstall）。
 3. `scripts/setup-engine.mjs`：从 `node_modules/stockfish` 挑选单线程 WASM 构建拷贝到 `public/engine/`，并生成 `src/generated/engine-manifest.json`（记录真实文件名，避免硬编码）。

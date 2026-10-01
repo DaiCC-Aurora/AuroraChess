@@ -15,7 +15,7 @@ const NAV = [
   { href: '/watch', labelKey: 'nav.watch' },
 ] as const;
 
-/** Original mark: a wave with a rising point (aurora over the board). */
+/** Original mark: a wave with a rising point. */
 function LogoMark({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -26,6 +26,23 @@ function LogoMark({ size = 20 }: { size?: number }) {
         strokeLinecap="round"
       />
       <circle cx="19.2" cy="6.2" r="2.1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function ThemeIcon({ dark }: { dark: boolean }) {
+  const common = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true } as const;
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  return (
+    <svg {...common}>
+      {dark ? (
+        <>
+          <circle cx="12" cy="12" r="4" {...stroke} />
+          <path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6l1.4 1.4m10 10 1.4 1.4m0-12.8-1.4 1.4m-10 10-1.4 1.4" {...stroke} />
+        </>
+      ) : (
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" {...stroke} />
+      )}
     </svg>
   );
 }
@@ -73,7 +90,6 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
             <span className="flex flex-col leading-none">
               <span className="text-[0.95rem] font-semibold tracking-tight">{t('app.name')}</span>
-              <span className="text-muted text-[0.7rem]">{t('app.short')}</span>
             </span>
           </Link>
 
@@ -108,7 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               aria-label={t('common.theme')}
               title={t('common.theme')}
             >
-              {settings.theme === 'dark' ? '☀' : '☾'}
+              <ThemeIcon dark={settings.theme === 'dark'} />
             </button>
           </div>
         </div>
@@ -117,9 +133,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6">{children}</main>
 
       <footer className="text-muted mx-auto w-full max-w-6xl px-4 pb-8 pt-4 text-xs sm:px-6">
-        <p>
-          {t('app.tagline')} · Stockfish 19 Lite WASM (GPL-3.0) · {t('common.pieces')}: cburnett
-        </p>
+        <p>Stockfish 19 Lite WASM (GPL-3.0) · cburnett pieces by Colin M.L. Burnett (GPLv2+ / CC BY-SA 3.0)</p>
       </footer>
     </div>
   );

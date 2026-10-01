@@ -13,8 +13,8 @@ export type Dict = Record<string, string>;
 
 const zh: Dict = {
   'app.name': 'AuroraChess',
-  'app.tagline': '极光国际象棋 · 学棋、练棋、与引擎对弈',
-  'app.short': '极光棋',
+  'app.tagline': 'AuroraChess · 学棋、练棋、与引擎对弈',
+  'app.short': 'AuroraChess',
 
   'common.back': '返回',
   'common.close': '关闭',
@@ -99,7 +99,8 @@ const zh: Dict = {
   'play.lastGameResumed': '已恢复上一局',
 
   'coach.title': '教练模式',
-  'coach.desc': '引擎会在你走棋后立刻检查，并解释问题所在。',
+  'coach.desc': '每一步即时评级，可随时要提示。',
+  'coach.awaitingMove': '等待你走棋',
   'coach.enable': '开启实时指导',
   'coach.hint': '给我一个提示',
   'coach.showBest': '显示最佳着法',
@@ -144,6 +145,10 @@ const zh: Dict = {
   'review.bestMoves': '最佳着法',
   'review.noBadMoves': '没有明显失误，下得很稳。',
   'review.jumpTo': '跳到问题手',
+  'review.first': '回到开局',
+  'review.prev': '上一步',
+  'review.next': '下一步',
+  'review.last': '跳到结尾',
   'review.plySummary': '第 {move} 回合 {san}',
 
   'watch.title': '手表模式',
@@ -184,7 +189,7 @@ const zh: Dict = {
   'piece.k': '王',
 
   'pieces.cburnett': 'Lichess 经典',
-  'pieces.aurora': '极光几何',
+  'pieces.aurora': '几何棋子',
   'board.deepseek': '深寻蓝',
   'board.classic': '经典木色',
   'board.ice': '冰川灰',
@@ -306,7 +311,8 @@ const en: Dict = {
   'play.lastGameResumed': 'Previous game restored',
 
   'coach.title': 'Coach mode',
-  'coach.desc': 'The engine checks every move you play and explains the problem.',
+  'coach.desc': 'Every move is graded instantly, with a hint on demand.',
+  'coach.awaitingMove': 'Waiting for your move',
   'coach.enable': 'Live coaching',
   'coach.hint': 'Give me a hint',
   'coach.showBest': 'Show best move',
@@ -351,6 +357,10 @@ const en: Dict = {
   'review.bestMoves': 'Best moves',
   'review.noBadMoves': 'No obvious mistakes, well played.',
   'review.jumpTo': 'Jump to problem move',
+  'review.first': 'First move',
+  'review.prev': 'Previous move',
+  'review.next': 'Next move',
+  'review.last': 'Last move',
   'review.plySummary': 'Move {move}: {san}',
 
   'watch.title': 'Watch mode',

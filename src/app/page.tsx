@@ -8,11 +8,49 @@ import { PieceArt } from '@/components/board/PieceArt';
 import type { BoardTheme, PieceSet } from '@/lib/store/settings';
 import type { Locale } from '@/lib/i18n';
 
+/** Icons are inline SVG so the interface carries no emoji glyphs. */
+function ModeIcon({ name }: { name: 'play' | 'coach' | 'review' | 'watch' }) {
+  const common = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true } as const;
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  switch (name) {
+    case 'play':
+      return (
+        <svg {...common}>
+          <path d="M12 3.5c-1.9 0-3.4 1.5-3.4 3.4 0 1 .4 1.9 1.1 2.5-1.6 1-2.7 2.8-2.7 4.9 1.5-1 3.2-1.6 5-1.6s3.5.6 5 1.6c0-2.1-1.1-3.9-2.7-4.9.7-.6 1.1-1.5 1.1-2.5 0-1.9-1.5-3.4-3.4-3.4z" {...stroke} />
+          <path d="M6.5 19.5h11M7.5 18c0-1.2 2-2 4.5-2s4.5.8 4.5 2" {...stroke} />
+        </svg>
+      );
+    case 'coach':
+      return (
+        <svg {...common}>
+          <path d="M4 5.5h6.5c1 0 1.5.6 1.5 1.4v11c0-.8-.6-1.4-1.5-1.4H4z" {...stroke} />
+          <path d="M20 5.5h-6.5c-1 0-1.5.6-1.5 1.4v11c0-.8.6-1.4 1.5-1.4H20z" {...stroke} />
+        </svg>
+      );
+    case 'review':
+      return (
+        <svg {...common}>
+          <path d="M4 19.5h16" {...stroke} />
+          <path d="M6.5 16V9m5 7V5.5m5 10.5v-4.5" {...stroke} />
+        </svg>
+      );
+    case 'watch':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="6.5" {...stroke} />
+          <path d="M12 9v3.2l2.2 1.6M9.5 3.5h5M9.5 20.5h5" {...stroke} />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 const MODES = [
-  { href: '/play', titleKey: 'home.play.title', descKey: 'home.play.desc', icon: '♟' },
-  { href: '/coach', titleKey: 'home.coach.title', descKey: 'home.coach.desc', icon: '🎓' },
-  { href: '/review', titleKey: 'home.review.title', descKey: 'home.review.desc', icon: '📊' },
-  { href: '/watch', titleKey: 'home.watch.title', descKey: 'home.watch.desc', icon: '⌚' },
+  { href: '/play', titleKey: 'home.play.title', descKey: 'home.play.desc', icon: 'play' },
+  { href: '/coach', titleKey: 'home.coach.title', descKey: 'home.coach.desc', icon: 'coach' },
+  { href: '/review', titleKey: 'home.review.title', descKey: 'home.review.desc', icon: 'review' },
+  { href: '/watch', titleKey: 'home.watch.title', descKey: 'home.watch.desc', icon: 'watch' },
 ] as const;
 
 export default function HomePage() {
@@ -28,7 +66,7 @@ export default function HomePage() {
           {MODES.map(mode => (
             <Link key={mode.href} href={mode.href} className="mode-card">
               <span className="mode-icon" aria-hidden>
-                {mode.icon}
+                <ModeIcon name={mode.icon} />
               </span>
               <span className="flex flex-col">
                 <span className="font-semibold">{t(mode.titleKey)}</span>
@@ -128,13 +166,6 @@ export default function HomePage() {
             />
           </label>
         </div>
-      </section>
-
-      <section className="surface-flat p-4 text-sm">
-        <p className="text-muted">
-          引擎在浏览器内本地运行（Stockfish 19 Lite WASM，约 1.7MB，无需联网、无需服务器）；棋子使用
-          lichess 的 cburnett 棋组（Colin M.L. Burnett，GPLv2+/CC BY-SA 3.0）。所有棋谱与设置保存在本机。
-        </p>
       </section>
     </div>
   );

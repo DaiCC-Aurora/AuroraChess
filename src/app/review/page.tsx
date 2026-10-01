@@ -32,6 +32,39 @@ const REVIEW_QUALITIES: MoveQuality[] = [
   'blunder',
 ];
 
+/** Navigation icons are inline SVG: no emoji glyphs in the interface. */
+function TransportIcon({ name }: { name: 'first' | 'prev' | 'next' | 'last' }) {
+  const common = { width: 16, height: 16, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': true } as const;
+  switch (name) {
+    case 'first':
+      return (
+        <svg {...common}>
+          <path d="M6 5h2v14H6zM19 5v14l-9-7z" />
+        </svg>
+      );
+    case 'prev':
+      return (
+        <svg {...common}>
+          <path d="M16 5v14l-9-7z" />
+        </svg>
+      );
+    case 'next':
+      return (
+        <svg {...common}>
+          <path d="M8 5v14l9-7z" />
+        </svg>
+      );
+    case 'last':
+      return (
+        <svg {...common}>
+          <path d="M16 5h2v14h-2zM5 5v14l9-7z" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 function ReviewScreen() {
   const { t, settings } = useSettings();
   const [pgn, setPgn] = useState('');
@@ -121,17 +154,17 @@ function ReviewScreen() {
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex gap-2">
-            <button type="button" className="btn" onClick={() => setPly(0)} disabled={!totalPlies}>
-              ⏮
+            <button type="button" className="btn" onClick={() => setPly(0)} disabled={!totalPlies} aria-label={t('review.first')}>
+              <TransportIcon name="first" />
             </button>
-            <button type="button" className="btn" onClick={() => navigate(-1)} disabled={ply === 0}>
-              ◀
+            <button type="button" className="btn" onClick={() => navigate(-1)} disabled={ply === 0} aria-label={t('review.prev')}>
+              <TransportIcon name="prev" />
             </button>
-            <button type="button" className="btn" onClick={() => navigate(1)} disabled={ply >= totalPlies}>
-              ▶
+            <button type="button" className="btn" onClick={() => navigate(1)} disabled={ply >= totalPlies} aria-label={t('review.next')}>
+              <TransportIcon name="next" />
             </button>
-            <button type="button" className="btn" onClick={() => setPly(totalPlies)} disabled={!totalPlies}>
-              ⏭
+            <button type="button" className="btn" onClick={() => setPly(totalPlies)} disabled={!totalPlies} aria-label={t('review.last')}>
+              <TransportIcon name="last" />
             </button>
           </div>
           <div className="flex items-center gap-2">

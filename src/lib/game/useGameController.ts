@@ -15,7 +15,6 @@ import { pickFallbackMove } from '../engine/fallback';
 import { capLevelForWatch, levelForElo, levelToUciOptions, selectMove, shouldUseBook, type MoveCandidate } from '../engine/levels';
 import { useEngineActions, useEngineState } from '../engine/react';
 import { parseUciMove } from '../engine/uci';
-import { analysePosition, opponentThreats, type Finding } from '../coach/findings';
 import { bookContinuations, isBookMove, lookupOpening, type Opening } from '../coach/openings';
 import { lanToSan, pvToSan } from './pv';
 import { loadJson, saveJson, STORAGE_KEYS } from '../store/persist';
@@ -32,7 +31,6 @@ export interface CoachVerdict {
   bestSan: string | null;
   bestLan: string | null;
   bestPv: string[];
-  findings: Finding[];
   interrupted: boolean;
 }
 
@@ -122,10 +120,6 @@ export interface GameController {
   hint: HintState | null;
   requestHint: () => Promise<void>;
   clearHint: () => void;
-  findings: Finding[];
-  threats: Finding[];
-  /** Squares the coach wants outlined on the board. */
-  markedSquares: Square[];
   // clock
   clockMs: { w: number; b: number };
   activeClock: Color | null;
@@ -231,8 +225,6 @@ export function useGameController(options: ControllerOptions): GameController {
   }, [game, moves.length, persist, version]);
 
   // ------------------------------------------------------------- coaching --
-  const playerTurn = game.turn === playerColor && !status.over;
-
   useEffect(() => {
     if (mode !== 'coach' || !coachEnabled || !engineReady) return;
     if (game.turn !== playerColor || game.status().over) return;
@@ -272,7 +264,6 @@ export function useGameController(options: ControllerOptions): GameController {
     const token = ++tokenRef.current;
     const { record, before, history } = pendingCheck;
     const command = game.uciPositionCommand();
-    const afterGame = game.clone();
     void (async () => {
       let quality: MoveQuality = 'good';
       let lossCp = 0;
@@ -308,7 +299,6 @@ export function useGameController(options: ControllerOptions): GameController {
       }
       if (token !== tokenRef.current) return;
 
-      const findings = analysePosition(afterGame, playerColor).slice(0, 4);
       const interrupted = coachEnabled && SEVERITY_RANK[quality] >= INTERRUPT_RANK[coachInterrupt];
       const nextVerdict: CoachVerdict = {
         ply: record.ply,
@@ -319,7 +309,6 @@ export function useGameController(options: ControllerOptions): GameController {
         bestSan,
         bestLan,
         bestPv,
-        findings,
         interrupted,
       };
       setVerdict(nextVerdict);
@@ -537,33 +526,11 @@ export function useGameController(options: ControllerOptions): GameController {
     } catch {
       // ignore
     }
-  }, [coachDepth, game, search, status.over]);
+    // `engineReady` must be a dependency: without it the callback captured the
+    // pre-load value (false) and every hint click returned early.
+  }, [coachDepth, engineReady, game, search, status.over]);
 
   const clearHint = useCallback(() => setHint(null), []);
-
-  // ------------------------------------------------------------ findings ---
-  const findings = useMemo(() => {
-    if (mode !== 'coach') return [];
-    return analysePosition(game, playerColor, { quick: !playerTurn }).slice(0, 5);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game, mode, playerColor, playerTurn, version]);
-
-  const threats = useMemo(() => {
-    if (mode !== 'coach') return [];
-    return opponentThreats(game, playerColor);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game, mode, playerColor, version]);
-
-  /** Squares worth outlining on the board (critical + opportunity findings). */
-  const markedSquares = useMemo(() => {
-    const squares = new Set<Square>();
-    for (const finding of [...threats, ...findings]) {
-      if (finding.severity === 'critical' || finding.severity === 'good') {
-        for (const square of finding.squares) squares.add(square);
-      }
-    }
-    return [...squares].slice(0, 4);
-  }, [findings, threats]);
 
   const pgn = useMemo(    () =>
       game.pgn({
@@ -607,9 +574,6 @@ export function useGameController(options: ControllerOptions): GameController {
     hint,
     requestHint,
     clearHint,
-    findings,
-    threats,
-    markedSquares,
     clockMs,
     activeClock: status.over ? null : game.turn,
     pgn,

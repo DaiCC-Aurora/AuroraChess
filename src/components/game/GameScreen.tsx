@@ -120,7 +120,6 @@ export function GameScreen({ mode }: { mode: GameMode }) {
               targets={controller.targets}
               hint={controller.hint ? { from: controller.hint.from, to: controller.hint.to } : bestArrow}
               threat={null}
-              marked={controller.markedSquares}
               coordinates={settings.coordinates}
               promotion={controller.promotion}
               onSelect={controller.select}
@@ -185,15 +184,12 @@ export function GameScreen({ mode }: { mode: GameMode }) {
           <p className="text-muted text-xs">{t('play.engineLoading')}</p>
         )}
         {engineState.failed && <p className="text-xs" style={{ color: '#fbbf24' }}>{t('play.engineOffline')}</p>}
-        {controller.engineDeliberate && <p className="text-muted text-xs">{t('play.deliberate')}</p>}
       </div>
 
       <aside className="flex flex-col gap-3">
         {mode === 'coach' && (
           <CoachPanel
             verdict={controller.verdict}
-            findings={controller.findings}
-            threats={controller.threats}
             hint={controller.hint}
             onRetry={controller.retryVerdict}
             onDismiss={controller.dismissVerdict}

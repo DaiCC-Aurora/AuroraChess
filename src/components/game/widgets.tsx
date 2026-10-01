@@ -219,8 +219,8 @@ export function EloSlider({
           ))}
         </div>
       )}
-      <p className="text-muted text-xs">
-        {t('play.engineStrengthNote')} · {t('common.depth')} {level.depth} · {level.movetimeMs}ms
+      <p className="text-muted mono text-xs">
+        {t('common.depth')} {level.depth} · {level.movetimeMs}ms
       </p>
     </div>
   );

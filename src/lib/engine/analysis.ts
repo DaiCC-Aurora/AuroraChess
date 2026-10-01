@@ -110,7 +110,7 @@ export interface QualityMeta {
  * (hsl 202 78% 62% / 41 100% 45% / 0 69% 60%) so players recognise them.
  */
 export const QUALITY_META: Record<MoveQuality, QualityMeta> = {
-  book: { key: 'book', i18n: 'quality.book', symbol: '📖', color: '#8a8f98', weight: 1 },
+  book: { key: 'book', i18n: 'quality.book', symbol: '≡', color: '#8a8f98', weight: 1 },
   best: { key: 'best', i18n: 'quality.best', symbol: '★', color: '#38bdf8', weight: 1 },
   excellent: { key: 'excellent', i18n: 'quality.excellent', symbol: '!', color: '#4ade80', weight: 0.95 },
   good: { key: 'good', i18n: 'quality.good', symbol: '✓', color: '#a3e635', weight: 0.85 },

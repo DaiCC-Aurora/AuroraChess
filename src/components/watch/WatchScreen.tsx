@@ -13,6 +13,57 @@ import type { Color, PieceSymbol } from '@/lib/chess/types';
 
 const PROMOTION_PIECES: PieceSymbol[] = ['q', 'r', 'b', 'n'];
 
+/** Inline SVG menu icons (the watch UI carries no emoji). */
+function MenuIcon({ name }: { name: 'undo' | 'hint' | 'flip' | 'zoom' | 'new' | 'color' }) {
+  const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', 'aria-hidden': true } as const;
+  const stroke = { stroke: 'currentColor', strokeWidth: 1.9, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
+  switch (name) {
+    case 'undo':
+      return (
+        <svg {...common}>
+          <path d="M4 9h10a5 5 0 0 1 0 10H8" {...stroke} />
+          <path d="M7.5 5.5 4 9l3.5 3.5" {...stroke} />
+        </svg>
+      );
+    case 'hint':
+      return (
+        <svg {...common}>
+          <path d="M9 17h6M10 20h4" {...stroke} />
+          <path d="M12 3.5a5.5 5.5 0 0 0-3.2 9.9V17h6.4v-3.6A5.5 5.5 0 0 0 12 3.5z" {...stroke} />
+        </svg>
+      );
+    case 'flip':
+      return (
+        <svg {...common}>
+          <path d="M12 4v16" {...stroke} />
+          <path d="M8.5 7.5 5 12l3.5 4.5M15.5 7.5 19 12l-3.5 4.5" {...stroke} />
+        </svg>
+      );
+    case 'zoom':
+      return (
+        <svg {...common}>
+          <circle cx="11" cy="11" r="5.5" {...stroke} />
+          <path d="m15.5 15.5 4 4M9 11h4M11 9v4" {...stroke} />
+        </svg>
+      );
+    case 'new':
+      return (
+        <svg {...common}>
+          <path d="M12 5v14M5 12h14" {...stroke} />
+        </svg>
+      );
+    case 'color':
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="7.5" {...stroke} />
+          <path d="M12 4.5v15a7.5 7.5 0 0 0 0-15z" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 function formatClock(ms: number): string {
   const total = Math.floor(ms / 1000);
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
@@ -255,8 +306,8 @@ export function WatchScreen() {
                 }
               }}
             >
-              <span aria-hidden style={{ fontSize: '1rem' }}>
-                {item.icon}
+              <span aria-hidden style={{ display: 'grid', placeItems: 'center' }}>
+                <MenuIcon name={item.key} />
               </span>
               <span>{item.key === 'zoom' ? zoomLabel : t(item.labelKey)}</span>
             </button>
@@ -280,10 +331,10 @@ export function WatchScreen() {
 }
 
 const MENU_ITEMS = [
-  { key: 'undo', icon: '↺', labelKey: 'watch.undo' },
-  { key: 'hint', icon: '💡', labelKey: 'watch.hint' },
-  { key: 'flip', icon: '⇅', labelKey: 'play.flip' },
-  { key: 'zoom', icon: '🔍', labelKey: 'watch.zoom' },
-  { key: 'new', icon: '✚', labelKey: 'watch.newGame' },
-  { key: 'color', icon: '◐', labelKey: 'play.yourColor' },
+  { key: 'undo', labelKey: 'watch.undo' },
+  { key: 'hint', labelKey: 'watch.hint' },
+  { key: 'flip', labelKey: 'play.flip' },
+  { key: 'zoom', labelKey: 'watch.zoom' },
+  { key: 'new', labelKey: 'watch.newGame' },
+  { key: 'color', labelKey: 'play.yourColor' },
 ] as const;

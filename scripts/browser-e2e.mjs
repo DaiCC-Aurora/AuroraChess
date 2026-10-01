@@ -188,6 +188,18 @@ function playMove(from, to) {
   `;
 }
 
+/**
+ * Fails when any rendered text contains an emoji-presenting glyph. `★ ✓ ⇉ ?!`
+ * are not Extended_Pictographic, so the quality badges stay valid.
+ */
+async function assertNoEmoji(cdp, page) {
+  const found = await cdp.evaluate(`(() => {
+    const matches = document.body.innerText.match(/\\p{Extended_Pictographic}/gu);
+    return matches ? [...new Set(matches)].join(' ') : '';
+  })()`);
+  check(`${page} renders no emoji`, !found, found || 'clean');
+}
+
 async function main() {
   const edge = EDGE_CANDIDATES.find(candidate => fs.existsSync(candidate));
   if (!edge) throw new Error('no Edge/Chrome binary found (set E2E_BROWSER)');
@@ -258,6 +270,7 @@ async function main() {
     await cdp.navigate(`${BASE}/`);
     await cdp.evaluate('localStorage.clear()');
     await cdp.screenshot('home.png', { width: 1280, height: 1000 });
+    await assertNoEmoji(cdp, '/');
     await cdp.navigate(`${BASE}/play`);
     const ready = await cdp
       .waitForExpression('document.body.innerText.includes("引擎就绪") || document.body.innerText.includes("Engine ready")', 60_000, 'engine ready on /play')
@@ -287,6 +300,27 @@ async function main() {
       `fetch('/piece/cburnett/wK.svg').then(r => r.text().then(t => r.status + ' ' + t.slice(0, 40)))`,
     );
     check('piece SVG is served', /^200 <svg/.test(String(pieceAsset)), String(pieceAsset).slice(0, 60));
+
+    await assertNoEmoji(cdp, '/play');
+
+    // The hint must produce a suggestion arrow on the board.
+    const hintClick = await cdp.evaluate(`(() => {
+      const button = [...document.querySelectorAll('button')].find(el => /提示/.test(el.textContent || ''));
+      if (!button) return 'missing';
+      if (button.disabled) return 'disabled';
+      button.click();
+      return 'ok';
+    })()`);
+    check('hint button is clickable', hintClick === 'ok', String(hintClick));
+
+    const arrowLines = await cdp
+      .waitForExpression(
+        `(() => { const lines = document.querySelectorAll('.board-overlay line'); return lines.length > 0 ? lines.length : null; })()`,
+        30_000,
+        'hint arrow',
+      )
+      .catch(() => 0);
+    check('hint draws a suggestion arrow', Number(arrowLines) >= 1, `${arrowLines} arrow line(s)`);
 
     const moveResult = await cdp.evaluate(playMove('e2', 'e4'));
     check('a move can be played on the board', moveResult === 'ok', String(moveResult));
@@ -333,6 +367,7 @@ async function main() {
     check('coach grades the played move', graded, String(verdict).replace(/\s+/g, ' ').slice(0, 120));
     const ownPlyCoach = await cdp.evaluate('document.querySelectorAll("[data-testid=move]").length');
     check('coach mode records the move', Number(ownPlyCoach) >= 1, `${ownPlyCoach} plies`);
+    await assertNoEmoji(cdp, '/coach');
     await cdp.screenshot('coach.png', { width: 1280, height: 1100 });
 
     // 4 ---------------------------------------------------------------- review
@@ -359,6 +394,7 @@ async function main() {
       )
       .catch(() => '');
     check('review produces accuracy statistics', /准确率/.test(String(stats)) && /%/.test(String(stats)), String(stats).replace(/\s+/g, ' ').slice(0, 100));
+    await assertNoEmoji(cdp, '/review');
     await cdp.screenshot('review.png', { width: 1280, height: 1000 });
 
     // 4 ----------------------------------------------------------------- watch
@@ -417,6 +453,7 @@ async function main() {
     check('radial menu opens on tap', menu.opened && radial.count >= 4, `${radial.count} radial controls`);
     check('radial controls are touch-sized (>=48px)', radial.minSize >= 46, `${radial.minSize}px`);
     check('radial controls stay inside the round screen', radial.inside);
+    await assertNoEmoji(cdp, '/watch (menu open)');
     await cdp.screenshot('watch-menu.png', { width: 192, height: 192 });
     await cdp.screenshot('watch-454.png', { width: 454, height: 454 });
   } finally {

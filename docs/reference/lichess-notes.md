@@ -256,6 +256,6 @@ Analysis engine resources: MultiPV 1 default, movetime 8000 ms default, Hash min
 **Openings & drills**
 - Opening index: `Map<epdFen, {eco, name, uci, pgn}>`; search right-to-left over the game, max 40 plies, stop below 20 pieces, return the deepest hit; display `"<ECO> <Name>"`.
 - Opening source: `lichess-org/chess-openings` TSVs, columns `eco, name, pgn`.
-- Learn: 50 pts per apple/capture, level bonus 500/300/100 by lateness (`late ≤ 0 / ≤ max(1, nbMoves/8) / else`), 1★ at max, 2★ within 200; stage 2★ within `max(200, levels·150)`; persist best score per level under one key (`learn.progress`).
+- Learn: 50 pts per apple/capture, level bonus 500/300/100 by lateness (`late ≤ 0 / ≤ max(1, nbMoves/8) / else`), 1 at max, 2 within 200; stage 2 within `max(200, levels·150)`; persist best score per level under one key (`learn.progress`).
 - Coordinate drill: 30 s, tick 50 ms, start after 1 s, count correct answers, avoid repeating the previous file or rank (one of the two at random), keep last 20 scores.
 - Puzzle rating: Glicko-2, then blend with a theme weight (obvious 0.1/0.4, hinting 0.2/0.7, quiet 0.7/0.8, mix 1.0), cap puzzle delta per game, don't re-rate replays.
