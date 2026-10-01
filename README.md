@@ -4,6 +4,14 @@
 
 引擎完全跑在浏览器里（Stockfish 19 Lite WASM，约 1.7 MB），**无后端、无 API Key、可离线**。
 
+![教练模式](docs/screenshots/coach.png)
+
+在 192×192 圆形手表视口下（同一套代码，自动切换布局）：
+
+| 对局 | 径向菜单 |
+| --- | --- |
+| ![手表棋盘](docs/screenshots/watch-192.png) | ![手表菜单](docs/screenshots/watch-menu.png) |
+
 ---
 
 ## 功能
@@ -62,7 +70,8 @@ node scripts/browser-e2e.mjs http://127.0.0.1:3000
 | 教练 | 在 `/coach` 走一步后，讲解面板给出分级与理由 |
 | 手表 | 模拟 192×192 圆屏：进入手表布局、隐藏导航、棋盘每格 ≥30px、径向菜单 6 个控件且每个 ≥48px 并且不越界 |
 
-截图产物在 `.cache/e2e/`（引擎自检、对弈、教练、手表 192/454）。
+截图产物在 `.cache/e2e/`（引擎自检、对弈、教练、复盘、手表 192/454），仓库内的
+`docs/screenshots/` 保存了压缩后的界面截图。
 
 ### 部署到 Vercel
 

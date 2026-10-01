@@ -20,6 +20,18 @@ export default function ReviewPage() {
   );
 }
 
+/** Shown in the summary, best first (white/black counts side by side). */
+const REVIEW_QUALITIES: MoveQuality[] = [
+  'best',
+  'excellent',
+  'good',
+  'book',
+  'forced',
+  'inaccuracy',
+  'mistake',
+  'blunder',
+];
+
 function ReviewScreen() {
   const { t, settings } = useSettings();
   const [pgn, setPgn] = useState('');
@@ -143,39 +155,42 @@ function ReviewScreen() {
 
       <aside className="flex flex-col gap-3">
         {analysis.stats && (
-          <Panel title={t('review.accuracy')}>
-            <div className="flex flex-wrap gap-4">
-              <Stat label={t('play.white')} value={`${analysis.stats.accuracy.w}%`} />
-              <Stat label={t('play.black')} value={`${analysis.stats.accuracy.b}%`} />
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {(['blunder', 'mistake', 'inaccuracy', 'best'] as MoveQuality[]).map(quality => (
-                <span key={quality} className="text-xs" style={{ color: QUALITY_META[quality].color }}>
-                  {QUALITY_META[quality].symbol} {t(QUALITY_META[quality].i18n)}: {analysis.stats!.counts.w[quality]}/{analysis.stats!.counts.b[quality]}
-                </span>
-              ))}
-            </div>
-            {analysis.stats.worstPlies.length > 0 ? (
-              <div className="mt-3">
-                <p className="field-label mb-1">{t('review.jumpTo')}</p>
-                <div className="flex flex-wrap gap-1">
-                  {analysis.stats.worstPlies.map(worstPly => (
-                    <button
-                      key={worstPly}
-                      type="button"
-                      className="btn"
-                      style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
-                      onClick={() => setPly(worstPly + 1)}
-                    >
-                      {moves[worstPly]?.san ?? `#${worstPly + 1}`}
-                    </button>
-                  ))}
-                </div>
+          <div data-testid="review-stats">
+            <Panel title={t('review.accuracy')}>
+              <div className="flex flex-wrap gap-4">
+                <Stat label={t('play.white')} value={`${analysis.stats.accuracy.w}%`} />
+                <Stat label={t('play.black')} value={`${analysis.stats.accuracy.b}%`} />
               </div>
-            ) : (
-              <p className="text-muted mt-3 text-sm">{t('review.noBadMoves')}</p>
-            )}
-          </Panel>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {REVIEW_QUALITIES.map(quality => (
+                  <span key={quality} className="text-xs" style={{ color: QUALITY_META[quality].color }}>
+                    {QUALITY_META[quality].symbol} {t(QUALITY_META[quality].i18n)}: {analysis.stats!.counts.w[quality]}/
+                    {analysis.stats!.counts.b[quality]}
+                  </span>
+                ))}
+              </div>
+              {analysis.stats.worstPlies.length > 0 ? (
+                <div className="mt-3">
+                  <p className="field-label mb-1">{t('review.jumpTo')}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {analysis.stats.worstPlies.map(worstPly => (
+                      <button
+                        key={worstPly}
+                        type="button"
+                        className="btn"
+                        style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                        onClick={() => setPly(worstPly + 1)}
+                      >
+                        {moves[worstPly]?.san ?? `#${worstPly + 1}`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted mt-3 text-sm">{t('review.noBadMoves')}</p>
+              )}
+            </Panel>
+          </div>
         )}
 
         <Panel

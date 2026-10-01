@@ -304,6 +304,32 @@ async function main() {
     check('coach mode records the move', Number(ownPlyCoach) >= 1, `${ownPlyCoach} plies`);
     await cdp.screenshot('coach.png', { width: 1280, height: 1100 });
 
+    // 4 ---------------------------------------------------------------- review
+    await cdp.navigate(`${BASE}/review`);
+    const reviewLoaded = await cdp
+      .waitForExpression('document.querySelectorAll("[data-testid=move]").length >= 2', 20_000, 'review move list')
+      .then(() => true)
+      .catch(() => false);
+    check('/review loads the previous game', reviewLoaded);
+
+    const started = await cdp.evaluate(`(() => {
+      const button = [...document.querySelectorAll('button')].find(el => /开始分析|Analyse/.test(el.textContent || ''));
+      if (!button) return false;
+      button.click();
+      return true;
+    })()`);
+    check('/review analysis can be started', started === true);
+
+    const stats = await cdp
+      .waitForExpression(
+        '(() => { const el = document.querySelector("[data-testid=review-stats]"); return el ? el.innerText : null; })()',
+        90_000,
+        'review stats',
+      )
+      .catch(() => '');
+    check('review produces accuracy statistics', /准确率/.test(String(stats)) && /%/.test(String(stats)), String(stats).replace(/\s+/g, ' ').slice(0, 100));
+    await cdp.screenshot('review.png', { width: 1280, height: 1000 });
+
     // 4 ----------------------------------------------------------------- watch
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 192, height: 192, deviceScaleFactor: 2, mobile: true });
     await cdp.navigate(`${BASE}/watch`);
