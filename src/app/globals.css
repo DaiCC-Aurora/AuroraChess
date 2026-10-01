@@ -1,0 +1,409 @@
+@import 'tailwindcss';
+
+/*
+ * AuroraChess design tokens.
+ *
+ * Two themes, driven by a `data-theme` attribute on <html> so the choice
+ * survives SSR without a flash. Board colours follow lichess' verified brown
+ * theme light square (#f0d9b5); the dark square and accents are tuned around
+ * it for the aurora palette.
+ */
+@theme {
+  --color-aurora-50: #eefdf7;
+  --color-aurora-100: #d5f9ec;
+  --color-aurora-200: #aef1da;
+  --color-aurora-300: #74e5c3;
+  --color-aurora-400: #35d0a5;
+  --color-aurora-500: #12b58c;
+  --color-aurora-600: #079272;
+  --color-aurora-700: #07755e;
+  --color-aurora-800: #095d4c;
+  --color-aurora-900: #094c40;
+  --color-violet-glow: #8b5cf6;
+  --color-board-light: #f0d9b5;
+  --color-board-dark: #b58863;
+  --color-board-light-alt: #eaeef2;
+  --color-board-dark-alt: #7c93a8;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', 'PingFang SC',
+    'Microsoft YaHei', sans-serif;
+}
+
+:root {
+  --page-bg: radial-gradient(1200px 800px at 12% -10%, #123c33 0%, transparent 55%),
+    radial-gradient(900px 700px at 100% 0%, #2b1e5c 0%, transparent 45%), #0b1220;
+  --surface: rgba(17, 25, 40, 0.72);
+  --surface-strong: rgba(15, 23, 42, 0.92);
+  --border-subtle: rgba(148, 163, 184, 0.22);
+  --text-primary: #e8eef7;
+  --text-muted: #9fb0c6;
+  --accent: var(--color-aurora-400);
+  --accent-strong: var(--color-aurora-500);
+  --board-light: var(--color-board-light);
+  --board-dark: var(--color-board-dark);
+  --piece-white-fill: #fdfdfd;
+  --piece-white-stroke: #1f2937;
+  --piece-black-fill: #1f2937;
+  --piece-black-stroke: #cbd5e1;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --page-bg: radial-gradient(1000px 700px at 10% -10%, #d8f7ec 0%, transparent 55%),
+    radial-gradient(800px 600px at 100% 0%, #e6e2ff 0%, transparent 45%), #f6f8fb;
+  --surface: rgba(255, 255, 255, 0.82);
+  --surface-strong: rgba(255, 255, 255, 0.96);
+  --border-subtle: rgba(15, 23, 42, 0.12);
+  --text-primary: #0f1b2d;
+  --text-muted: #56657a;
+  --accent: var(--color-aurora-600);
+  --accent-strong: var(--color-aurora-700);
+  --board-light: var(--color-board-light-alt);
+  --board-dark: var(--color-board-dark-alt);
+  --piece-white-fill: #ffffff;
+  --piece-white-stroke: #24313f;
+  --piece-black-fill: #2b3648;
+  --piece-black-stroke: #f1f5f9;
+  --shadow-color: rgba(15, 23, 42, 0.18);
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--page-bg);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* ---------------------------------------------------------------- pieces -- */
+
+.board-surface {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 18px 40px -20px var(--shadow-color);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.board-square {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+}
+
+.board-square.light {
+  background: var(--board-light);
+}
+
+.board-square.dark {
+  background: var(--board-dark);
+}
+
+.board-piece {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  transition:
+    left 140ms cubic-bezier(0.22, 1, 0.36, 1),
+    top 140ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  will-change: left, top;
+}
+
+.board-piece.dragging {
+  transition: none;
+  z-index: 30;
+}
+
+/* Slide the piece that just moved from its old square to the new one. */
+@keyframes piece-slide {
+  from {
+    transform: translate(var(--dx, 0), var(--dy, 0));
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+
+.piece-slide {
+  animation: piece-slide 170ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.board-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Absolutely positioned board cell (no inset shorthand, so left/top survive). */
+.board-cell {
+  position: absolute;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------- ui --- */
+
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+  backdrop-filter: blur(12px);
+}
+
+.surface-strong {
+  background: var(--surface-strong);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1rem;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.7rem;
+  border: 1px solid var(--border-subtle);
+  padding: 0.55rem 0.9rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    transform 120ms ease,
+    border-color 120ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-aurora-500), var(--color-aurora-700));
+  border-color: transparent;
+  color: #f8fffd;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-aurora-400), var(--color-aurora-600));
+}
+
+.btn-ghost {
+  border-color: transparent;
+}
+
+.btn-danger {
+  border-color: color-mix(in oklab, #f87171 45%, transparent);
+  color: #fecaca;
+}
+
+:root[data-theme='light'] .btn-danger {
+  color: #b91c1c;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.field-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.6rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-runnable-track {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-aurora-600), var(--color-violet-glow));
+  opacity: 0.85;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -0.35rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid var(--accent-strong);
+  box-shadow: 0 2px 6px var(--shadow-color);
+}
+
+input[type='range']::-moz-range-track {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-aurora-600), var(--color-violet-glow));
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 2px solid var(--accent-strong);
+}
+
+.scroll-area {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+.mono {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+@keyframes fade-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-rise {
+  animation: fade-rise 220ms ease-out both;
+}
+
+@keyframes pulse-soft {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ------------------------------------------------------------- watch mode -- */
+
+/*
+ * Round display support.
+ *
+ * No browser implements `@media (shape: round)` / `device-radius`, and the page
+ * is merely *clipped* rather than reshaped, so the watch layout is built from
+ * geometry: a square stage sized to the viewport and clipped to a circle, with
+ * content inset by 5.2% (SAP Fiori for Wear OS guidance).
+ *
+ * `--d` is the circle diameter and is defined on :root so that fixed-position
+ * controls (which are not descendants of the stage) can size themselves too.
+ */
+:root {
+  --d: min(100vw, 100vh);
+}
+
+.watch-stage {
+  --margin: 0.052;
+  inline-size: var(--d);
+  block-size: var(--d);
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  clip-path: circle(50%);
+  position: relative;
+  isolation: isolate;
+}
+
+.watch-content {
+  inline-size: calc(var(--d) * (1 - 2 * var(--margin)));
+  block-size: calc(var(--d) * (1 - 2 * var(--margin)));
+  position: relative;
+}
+
+.watch-chip {
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  border: 1px solid var(--border-subtle);
+  font-weight: 600;
+}
+
+/* Radial placement: angle 0 = top, clockwise. */
+.watch-radial {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  translate: calc(cos(var(--angle)) * var(--radius) - 50%) calc(sin(var(--angle)) * var(--radius) - 50%);
+}
+
+/* The zoomed board inside the circular viewport: no own chrome. */
+.watch-inner-board {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Battery saver: kill animations while the watch page is hidden. */
+:root[data-watch-paused='true'] * {
+  animation: none !important;
+  transition: none !important;
+}

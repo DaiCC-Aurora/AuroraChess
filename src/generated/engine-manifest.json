@@ -1,0 +1,14 @@
+{
+  "engine": "Stockfish 19 Lite (single-threaded WASM)",
+  "version": "19.0.0",
+  "workerUrl": "/engine/stockfish.js",
+  "wasmUrl": "/engine/stockfish.wasm",
+  "wasmBytes": 1787571,
+  "jsBytes": 21415,
+  "threads": 1,
+  "requiresSharedArrayBuffer": false,
+  "strength": "light",
+  "source": "stockfish@19.0.0 (npm) bin/stockfish-19-lite-single.js",
+  "license": "GPL-3.0",
+  "generatedAt": "2026-10-01T05:31:38.217Z"
+}

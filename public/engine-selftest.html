@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AuroraChess engine self-test</title>
+    <style>
+      body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        background: #0b1220;
+        color: #e8eef7;
+        padding: 1rem;
+        line-height: 1.5;
+      }
+      #result {
+        font-size: 1.1rem;
+        font-weight: 700;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        background: #16233a;
+      }
+      pre {
+        white-space: pre-wrap;
+        color: #9fb0c6;
+        font-size: 0.75rem;
+        max-height: 60vh;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>AuroraChess engine self-test</h1>
+    <div id="result">pending</div>
+    <pre id="log"></pre>
+    <script>
+      const result = document.getElementById('result');
+      const logEl = document.getElementById('log');
+      const lines = [];
+      let done = false;
+
+      function log(message) {
+        logEl.textContent += message + '\n';
+      }
+
+      function finish(text) {
+        if (done) return;
+        done = true;
+        result.textContent = text;
+        try {
+          worker.postMessage('quit');
+        } catch (error) {
+          /* ignore */
+        }
+      }
+
+      log('spawning /engine/stockfish.js');
+      const worker = new Worker('/engine/stockfish.js');
+
+      worker.onerror = event => finish('ERROR ' + (event.message || 'worker error'));
+      worker.onmessageerror = () => finish('ERROR message deserialization');
+
+      worker.onmessage = event => {
+        if (typeof event.data !== 'string') {
+          // WASM download progress is posted as an object.
+          log('progress ' + JSON.stringify(event.data));
+          return;
+        }
+        for (const line of event.data.split('\n')) {
+          if (!line) continue;
+          lines.push(line);
+          log(line);
+          if (line.startsWith('uciok')) {
+            worker.postMessage('setoption name UCI_LimitStrength value true');
+            worker.postMessage('setoption name UCI_Elo value 1600');
+            worker.postMessage('setoption name MultiPV value 2');
+            worker.postMessage('isready');
+          } else if (line.startsWith('readyok')) {
+            worker.postMessage('ucinewgame');
+            worker.postMessage('position startpos moves e2e4 e7e5 g1f3 b8c6');
+            worker.postMessage('go depth 8 movetime 1500');
+          } else if (line.startsWith('bestmove')) {
+            const depths = lines
+              .filter(l => l.startsWith('info') && l.includes(' depth '))
+              .map(l => Number(l.split(' depth ')[1].split(' ')[0]))
+              .filter(n => !Number.isNaN(n));
+            const maxDepth = depths.length ? Math.max(...depths) : 0;
+            const pvCount = new Set(
+              lines.filter(l => l.includes(' multipv ')).map(l => l.split(' multipv ')[1].split(' ')[0]),
+            ).size;
+            const scoreMatch = [...lines].reverse().join('\n').match(/score (cp|mate) (-?\d+)/);
+            finish(
+              'DONE bestmove=' + line.split(' ')[1] + ' maxdepth=' + maxDepth + ' multipv=' + pvCount +
+                ' score=' + (scoreMatch ? scoreMatch[1] + ':' + scoreMatch[2] : 'none') +
+                ' ucioptions=' + lines.filter(l => l.startsWith('option name UCI')).length,
+            );
+          }
+        }
+      };
+
+      setTimeout(() => finish('TIMEOUT'), 25000);
+    </script>
+  </body>
+</html>
