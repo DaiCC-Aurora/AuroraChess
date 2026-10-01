@@ -126,12 +126,13 @@ export function WatchScreen() {
   }, [controller.clockMs, controller.status, controller.turn, playerColor, t]);
 
   const cycleZoom = useCallback(() => {
-    const next: WatchZoom = zoom === 2 ? 4 : zoom === 4 ? 8 : 2;
+    // 4x4 (default) -> 2x2 (huge) -> whole board -> back to 4x4.
+    const next: WatchZoom = zoom === 4 ? 2 : zoom === 2 ? 8 : 4;
     setZoom(next);
     update({ watchZoom: next });
   }, [update, zoom]);
 
-  const zoomLabel = zoom === 2 ? t('watch.zoom4') : zoom === 4 ? t('watch.zoom2') : t('watch.zoom8');
+  const zoomLabel = zoom === 4 ? t('watch.zoom4') : zoom === 2 ? t('watch.zoom2') : t('watch.zoom8');
   const promotionRequest = controller.promotion;
 
   return (

@@ -455,6 +455,36 @@ async function main() {
     check('radial controls stay inside the round screen', radial.inside);
     await assertNoEmoji(cdp, '/watch (menu open)');
     await cdp.screenshot('watch-menu.png', { width: 192, height: 192 });
+
+    // The "whole board" zoom must show all 8x8 files inside the round screen.
+    await cdp.evaluate(`(() => {
+      const key = 'aurorachess.settings.v1';
+      const current = JSON.parse(localStorage.getItem(key) || '{}');
+      localStorage.setItem(key, JSON.stringify({ ...current, watchZoom: 8 }));
+      return true;
+    })()`);
+    await cdp.navigate(`${BASE}/watch`);
+    await sleep(700);
+    const fullBoard = await cdp.evaluate(`(() => {
+      const stage = document.querySelector('.watch-stage').getBoundingClientRect();
+      const board = document.querySelector('.board-surface').getBoundingClientRect();
+      return {
+        stage: Math.round(stage.width),
+        board: Math.round(board.width),
+        square: Math.round(board.width / 8),
+        inside:
+          board.left >= stage.left - 1 &&
+          board.top >= stage.top - 1 &&
+          board.right <= stage.right + 1 &&
+          board.bottom <= stage.bottom + 1,
+      };
+    })()`);
+    check(
+      'whole-board zoom fits the full 8x8 inside the circle',
+      fullBoard.inside && fullBoard.square >= 12,
+      JSON.stringify(fullBoard),
+    );
+    await cdp.screenshot('watch-full.png', { width: 454, height: 454 });
     await cdp.screenshot('watch-454.png', { width: 454, height: 454 });
   } finally {
     try {

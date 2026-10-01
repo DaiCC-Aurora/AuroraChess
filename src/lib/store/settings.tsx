@@ -7,12 +7,21 @@ import { loadJson, saveJson, STORAGE_KEYS } from './persist';
 
 export type ThemeChoice = 'dark' | 'light' | 'system';
 export type InterruptLevel = 'inaccuracy' | 'mistake' | 'blunder';
+/**
+ * Watch board zoom, expressed as the number of files/ranks visible:
+ * `8` = the whole board, `4` = the default 4x4 window, `2` = a 2x2 window.
+ */
 export type WatchZoom = 4 | 2 | 8;
 /** `cburnett` is the lichess piece set, `aurora` the built-in geometric one. */
 export type PieceSet = 'cburnett' | 'aurora';
 export type BoardTheme = 'deepseek' | 'classic' | 'ice';
 
+/** Bumped when a stored settings shape needs migrating. */
+export const SETTINGS_VERSION = 2;
+
 export interface Settings {
+  /** Shape version of the persisted settings. */
+  settingsVersion: number;
   locale: Locale;
   theme: ThemeChoice;
   /** Default engine strength for a new game. */
@@ -32,6 +41,7 @@ export interface Settings {
 }
 
 export const DEFAULT_SETTINGS: Settings = {
+  settingsVersion: SETTINGS_VERSION,
   locale: DEFAULT_LOCALE,
   theme: 'light',
   elo: ENGINE_ELO_DEFAULT,
@@ -40,14 +50,30 @@ export const DEFAULT_SETTINGS: Settings = {
   sound: true,
   coachInterrupt: 'mistake',
   coachEnabled: true,
-  // 2 = a 4x4 window (~40px squares on a 192px watch), the legibility
+  // 4 = a 4x4 window (~40px squares on a 192px watch), the legibility
   // recommendation from docs/reference/watch-ui-notes.md.
-  watchZoom: 2,
+  watchZoom: 4,
   watchBatterySaver: true,
   coachDepth: 14,
   pieceSet: 'cburnett',
   boardTheme: 'deepseek',
 };
+
+/**
+ * v1 stored `watchZoom` as a *scale factor* (2 meant a 4x4 window, and 8 — the
+ * "whole board" option — scaled the board 8x so only one square was visible).
+ * v2 stores the number of visible squares instead.
+ */
+function migrateStoredSettings(stored: Partial<Settings>): Partial<Settings> {
+  const patch: Partial<Settings> = { ...stored };
+  if ((stored.settingsVersion ?? 1) < SETTINGS_VERSION) {
+    if (stored.watchZoom === 2) patch.watchZoom = 4;
+    else if (stored.watchZoom === 4) patch.watchZoom = 2;
+    else if (stored.watchZoom === 8) patch.watchZoom = 8;
+  }
+  patch.settingsVersion = SETTINGS_VERSION;
+  return patch;
+}
 
 interface SettingsContextValue {
   settings: Settings;
@@ -71,10 +97,11 @@ export function SettingsProvider({ children, initial }: { children: ReactNode; i
 
   // Hydrate from storage after mount so SSR markup stays deterministic.
   useEffect(() => {
-    const stored = loadJson<Settings>(STORAGE_KEYS.settings, DEFAULT_SETTINGS);
+    // Read the raw stored object (empty fallback = no merge) so the migration
+    // can tell a v1 payload from a v2 one.
+    const stored = loadJson<Partial<Settings>>(STORAGE_KEYS.settings, {});
     const browserLocale = resolveLocale(typeof navigator !== 'undefined' ? navigator.language.slice(0, 2) : undefined);
-    // Stored value wins, otherwise fall back to the browser language.
-    setSettings(prev => ({ ...prev, ...stored, locale: stored.locale ?? browserLocale }));
+    setSettings(prev => ({ ...prev, ...migrateStoredSettings(stored), locale: stored.locale ?? browserLocale }));
     setReady(true);
   }, []);
 
