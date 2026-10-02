@@ -7,7 +7,7 @@ import { Chip, Panel, ProgressBar, SegmentedControl, Stat } from '@/components/u
 import { AuroraGame } from '@/lib/chess/game';
 import { QUALITY_META } from '@/lib/engine/analysis';
 import type { Color, MoveQuality } from '@/lib/chess/types';
-import { EngineProvider } from '@/lib/engine/react';
+import { EngineProvider, useEngineState } from '@/lib/engine/react';
 import { useReviewAnalysis } from '@/lib/game/useReviewAnalysis';
 import { useSettings } from '@/lib/store/settings';
 import { loadJson, saveJson, STORAGE_KEYS } from '@/lib/store/persist';
@@ -72,6 +72,7 @@ function ReviewScreen() {
   const [ply, setPly] = useState(0);
   const [orientation, setOrientation] = useState<Color>('w');
   const analysis = useReviewAnalysis();
+  const engine = useEngineState();
 
   useEffect(() => {
     const stored = loadJson<{ pgn?: string }>(STORAGE_KEYS.lastGame, {});
@@ -122,7 +123,12 @@ function ReviewScreen() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 className="text-xl font-bold">{t('review.title')}</h1>
           <div className="flex gap-2">
-            <button type="button" className="btn btn-primary" onClick={() => void runAnalysis()} disabled={!pgn.trim() || analysis.running}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => void runAnalysis()}
+              disabled={!pgn.trim() || analysis.running || !engine.ready}
+            >
               {analysis.running ? t('review.analyzing', { percent: analysis.progress }) : t('review.start')}
             </button>
             {analysis.running && (
@@ -134,6 +140,7 @@ function ReviewScreen() {
         </div>
 
         {analysis.running && <ProgressBar percent={analysis.progress} />}
+        {!engine.ready && !engine.failed && <p className="text-muted text-xs">{t('play.engineLoading')}</p>}
 
         <div className="relative">
           <Board

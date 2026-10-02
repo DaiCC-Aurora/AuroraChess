@@ -23,7 +23,12 @@ const BASE = process.argv[2] ?? 'http://127.0.0.1:3210';
 const DEBUG_PORT = Number(process.env.E2E_DEBUG_PORT ?? 9333);
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 const SHOT_DIR = path.join(ROOT, '.cache', 'e2e');
-const PROFILE = path.join(ROOT, '.cache', 'edge-e2e-profile');
+/**
+ * A fresh profile per run: two runs sharing one directory race on Edge's
+ * singleton lock ("timeout waiting for browser devtools" on the second run).
+ */
+const PROFILE_ROOT = path.join(ROOT, '.cache', 'e2e-profiles');
+const PROFILE = path.join(PROFILE_ROOT, String(Date.now()));
 
 const EDGE_CANDIDATES = [
   process.env.E2E_BROWSER,
@@ -200,9 +205,30 @@ async function assertNoEmoji(cdp, page) {
   check(`${page} renders no emoji`, !found, found || 'clean');
 }
 
+/**
+ * Pins the interface language. A fresh browser profile otherwise falls back to
+ * the browser locale, which would make text assertions depend on the host.
+ */
+async function seedSettings(cdp, base, patch) {
+  await cdp.evaluate(`(() => {
+    const key = 'aurorachess.settings.v1';
+    const current = JSON.parse(localStorage.getItem(key) || '{}');
+    localStorage.setItem(key, JSON.stringify({ ...current, ...${JSON.stringify(patch)} }));
+    return true;
+  })()`);
+  await cdp.navigate(`${base}/`);
+}
+
 async function main() {
   const edge = EDGE_CANDIDATES.find(candidate => fs.existsSync(candidate));
   if (!edge) throw new Error('no Edge/Chrome binary found (set E2E_BROWSER)');
+  // Start from a clean profile directory so a previous run cannot lock us out.
+  try {
+    fs.rmSync(PROFILE_ROOT, { recursive: true, force: true });
+  } catch {
+    // A browser from an earlier run may still hold files; the unique profile
+    // name below keeps this run independent anyway.
+  }
   fs.mkdirSync(PROFILE, { recursive: true });
 
   const child = spawn(
@@ -243,6 +269,9 @@ async function main() {
     );
     check('engine WASM is served', wasmBytes > 1_000_000, `${wasmBytes} bytes`);
 
+    // Pin the language so text assertions do not depend on the host locale.
+    await seedSettings(cdp, BASE, { locale: 'zh' });
+
     await cdp.navigate(`${BASE}/engine-selftest.html`);
     let engineResult = '';
     try {
@@ -269,8 +298,50 @@ async function main() {
     // Start from a clean slate: a restored game would change the legal moves.
     await cdp.navigate(`${BASE}/`);
     await cdp.evaluate('localStorage.clear()');
+    // Re-seed (and reload) so the app re-hydrates from clean storage with a
+    // pinned language; otherwise its in-memory state is written back by the
+    // next settings change and the host locale leaks in.
+    await seedSettings(cdp, BASE, { locale: 'zh' });
     await cdp.screenshot('home.png', { width: 1280, height: 1000 });
     await assertNoEmoji(cdp, '/');
+
+    // The top bar must be collapsible, and the choice must survive a reload.
+    const collapsed = await cdp.evaluate(`(() => {
+      const button = document.querySelector('[data-testid=header-toggle]');
+      if (!button) return 'missing';
+      button.click();
+      return 'clicked';
+    })()`);
+    await sleep(300);
+    const hiddenState = await cdp.evaluate(`({
+      header: !!document.querySelector('header'),
+      restore: !!document.querySelector('.header-restore'),
+    })`);
+    check(
+      'top bar can be hidden',
+      collapsed === 'clicked' && !hiddenState.header && hiddenState.restore,
+      JSON.stringify(hiddenState),
+    );
+    await cdp.screenshot('home-collapsed.png', { width: 1280, height: 820 });
+
+    await cdp.navigate(`${BASE}/`);
+    await sleep(600);
+    const persisted = await cdp.evaluate(`({
+      header: !!document.querySelector('header'),
+      restore: !!document.querySelector('.header-restore'),
+    })`);
+    check('hidden top bar survives a reload', !persisted.header && persisted.restore, JSON.stringify(persisted));
+
+    const restored = await cdp.evaluate(`(() => {
+      const button = document.querySelector('.header-restore');
+      if (!button) return 'missing';
+      button.click();
+      return 'clicked';
+    })()`);
+    await sleep(300);
+    const headerBack = await cdp.evaluate(`!!document.querySelector('header nav')`);
+    check('top bar can be restored', restored === 'clicked' && headerBack, String(headerBack));
+
     await cdp.navigate(`${BASE}/play`);
     const ready = await cdp
       .waitForExpression('document.body.innerText.includes("引擎就绪") || document.body.innerText.includes("Engine ready")', 60_000, 'engine ready on /play')
@@ -305,7 +376,7 @@ async function main() {
 
     // The hint must produce a suggestion arrow on the board.
     const hintClick = await cdp.evaluate(`(() => {
-      const button = [...document.querySelectorAll('button')].find(el => /提示/.test(el.textContent || ''));
+      const button = [...document.querySelectorAll('button')].find(el => /(提示|Hint)/.test(el.textContent || ''));
       if (!button) return 'missing';
       if (button.disabled) return 'disabled';
       button.click();
@@ -350,7 +421,7 @@ async function main() {
     // 3 ----------------------------------------------------------------- coach
     await cdp.navigate(`${BASE}/coach`);
     const coachReady = await cdp
-      .waitForExpression('document.body.innerText.includes("教练")', 30_000, 'coach screen')
+      .waitForExpression('document.body.innerText.includes("教练") || document.body.innerText.includes("Coach")', 30_000, 'coach screen')
       .then(() => true)
       .catch(() => false);
     check('/coach renders the coach UI', coachReady);
@@ -363,7 +434,7 @@ async function main() {
         'coach verdict',
       )
       .catch(() => '');
-    const graded = /最佳|良好|优秀|不精确|失误|严重失误|唯一着法|谱招/.test(String(verdict));
+    const graded = /(最佳|良好|优秀|不精确|失误|严重失误|唯一着法|谱招|Best|Excellent|Good|Inaccuracy|Mistake|Blunder|Forced|Book)/.test(String(verdict));
     check('coach grades the played move', graded, String(verdict).replace(/\s+/g, ' ').slice(0, 120));
     const ownPlyCoach = await cdp.evaluate('document.querySelectorAll("[data-testid=move]").length');
     check('coach mode records the move', Number(ownPlyCoach) >= 1, `${ownPlyCoach} plies`);
@@ -378,12 +449,18 @@ async function main() {
       .catch(() => false);
     check('/review loads the previous game', reviewLoaded);
 
-    const started = await cdp.evaluate(`(() => {
-      const button = [...document.querySelectorAll('button')].find(el => /开始分析|Analyse/.test(el.textContent || ''));
-      if (!button) return false;
-      button.click();
-      return true;
-    })()`);
+    const started = await cdp
+      .waitForExpression(
+        `(() => {
+          const button = [...document.querySelectorAll('button')].find(el => /(开始分析|Analyse)/.test(el.textContent || ''));
+          if (!button || button.disabled) return null;
+          button.click();
+          return true;
+        })()`,
+        60_000,
+        'review analyse button enabled',
+      )
+      .catch(() => false);
     check('/review analysis can be started', started === true);
 
     const stats = await cdp
@@ -393,11 +470,18 @@ async function main() {
         'review stats',
       )
       .catch(() => '');
-    check('review produces accuracy statistics', /准确率/.test(String(stats)) && /%/.test(String(stats)), String(stats).replace(/\s+/g, ' ').slice(0, 100));
+    check('review produces accuracy statistics', /(准确率|Accuracy)/.test(String(stats)) && /%/.test(String(stats)), String(stats).replace(/\s+/g, ' ').slice(0, 100));
     await assertNoEmoji(cdp, '/review');
     await cdp.screenshot('review.png', { width: 1280, height: 1000 });
 
     // 4 ----------------------------------------------------------------- watch
+    // Pin the zoom explicitly so the checks do not depend on earlier runs.
+    await cdp.evaluate(`(() => {
+      const key = 'aurorachess.settings.v1';
+      const current = JSON.parse(localStorage.getItem(key) || '{}');
+      localStorage.setItem(key, JSON.stringify({ ...current, watchZoom: 4 }));
+      return true;
+    })()`);
     await cdp.send('Emulation.setDeviceMetricsOverride', { width: 192, height: 192, deviceScaleFactor: 2, mobile: true });
     await cdp.navigate(`${BASE}/watch`);
     await sleep(500);
@@ -493,6 +577,8 @@ async function main() {
       // ignore
     }
     child.kill();
+    // Give the browser a moment to release the profile before the next run.
+    await sleep(1200);
   }
 
   const failed = results.filter(result => !result.ok);

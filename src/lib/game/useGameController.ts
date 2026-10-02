@@ -257,7 +257,12 @@ export function useGameController(options: ControllerOptions): GameController {
       if (pendingCheck) setPendingCheck(null);
       return;
     }
-    if (!engineReady) {
+    // If the player moved while the engine was still loading, keep the pending
+    // check and grade it once the engine is up (this effect re-runs when
+    // `engineReady` flips). Only a *failed* engine drops it, so the fallback
+    // opponent can take over.
+    if (!engineReady && !engineFailed) return;
+    if (engineFailed) {
       setPendingCheck(null);
       return;
     }
@@ -315,7 +320,7 @@ export function useGameController(options: ControllerOptions): GameController {
       setVerdictBlocking(interrupted);
       setPendingCheck(null);
     })();
-  }, [coachDepth, coachEnabled, coachInterrupt, engineReady, game, mode, pendingCheck, playerColor, search]);
+  }, [coachDepth, coachEnabled, coachInterrupt, engineFailed, engineReady, game, mode, pendingCheck, playerColor, search]);
 
   // --------------------------------------------------------- engine reply --
   useEffect(() => {

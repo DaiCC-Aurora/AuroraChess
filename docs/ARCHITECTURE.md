@@ -107,7 +107,7 @@
 | UCI 客户端（握手、MultiPV 归并、取消、错误、进度） | Vitest + 伪造 Worker |
 | 真实引擎二进制 | `npm run engine:smoke`：启动 vendored WASM 跑真 UCI，11 项断言 |
 | 生产构建 | `npm run build`（Next 静态预渲染 6 条路由） |
-| 真实浏览器（引擎/棋子/对弈/教练/复盘/手表） | `scripts/browser-e2e.mjs`：Node 内置 fetch+WebSocket 驱动 CDP，33 项断言 |
+| 真实浏览器（引擎/棋子/对弈/教练/复盘/手表） | `scripts/browser-e2e.mjs`：Node 内置 fetch+WebSocket 驱动 CDP，36 项断言 |
 | 部署后引擎可用性 | `/engine-selftest.html`（浏览器内真机自检） |
 
 ## 7. 外观系统

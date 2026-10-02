@@ -38,6 +38,8 @@ export interface Settings {
   coachDepth: number;
   pieceSet: PieceSet;
   boardTheme: BoardTheme;
+  /** Collapses the top bar so the board gets the full height. */
+  headerHidden: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -57,6 +59,7 @@ export const DEFAULT_SETTINGS: Settings = {
   coachDepth: 14,
   pieceSet: 'cburnett',
   boardTheme: 'deepseek',
+  headerHidden: false,
 };
 
 /**

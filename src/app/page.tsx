@@ -157,6 +157,16 @@ export default function HomePage() {
           </div>
 
           <label className="flex items-center justify-between text-sm">
+            <span>{t('common.hideHeader')}</span>
+            <input
+              type="checkbox"
+              checked={settings.headerHidden}
+              onChange={event => update({ headerHidden: event.target.checked })}
+              style={{ width: '1.1rem', height: '1.1rem', accentColor: 'var(--accent)' }}
+            />
+          </label>
+
+          <label className="flex items-center justify-between text-sm">
             <span>{t('common.coordinates')}</span>
             <input
               type="checkbox"

@@ -389,6 +389,34 @@ input[type='range']::-moz-range-thumb {
   font-feature-settings: 'tnum';
 }
 
+/* Floating tab that restores a collapsed top bar (top-right, out of the way). */
+.header-restore {
+  position: fixed;
+  top: 0.4rem;
+  right: 0.5rem;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in oklab, var(--surface) 85%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-soft);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.header-restore:hover {
+  color: var(--accent);
+  border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+}
+
 /* Card used by the mode grid on the home screen. */
 .mode-card {
   display: flex;

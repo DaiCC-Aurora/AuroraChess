@@ -47,10 +47,26 @@ function ThemeIcon({ dark }: { dark: boolean }) {
   );
 }
 
+/** Chevron used by the collapse/restore controls. */
+function ChevronIcon({ direction }: { direction: 'up' | 'down' }) {
+  return (
+    <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d={direction === 'up' ? 'M6 14.5 12 8.5l6 6' : 'M6 9.5 12 15.5l6-6'}
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { t, settings, update } = useSettings();
   const pathname = usePathname();
   const isWatchViewport = useIsWatch();
+  const headerHidden = settings.headerHidden;
 
   // On a round watch the viewport is ~192 CSS px: navigation chrome would eat
   // the whole screen and push the board out of view, so the shell gets out of
@@ -61,74 +77,102 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header
-        style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 30,
-          background: 'color-mix(in oklab, var(--surface) 88%, transparent)',
-          backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid var(--border-subtle)',
-        }}
-      >
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 py-2.5 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5 no-underline" style={{ color: 'inherit' }}>
-            <span
-              aria-hidden
-              style={{
-                display: 'grid',
-                placeItems: 'center',
-                width: '2rem',
-                height: '2rem',
-                borderRadius: '0.6rem',
-                background: 'var(--accent)',
-                color: '#fff',
-                flex: 'none',
-              }}
-            >
-              <LogoMark />
-            </span>
-            <span className="flex flex-col leading-none">
-              <span className="text-[0.95rem] font-semibold tracking-tight">{t('app.name')}</span>
-            </span>
-          </Link>
-
-          <nav className="order-3 flex w-full flex-wrap items-center gap-1 sm:order-none sm:w-auto" aria-label="Main">
-            {NAV.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="nav-link"
-                aria-current={pathname === item.href ? 'page' : undefined}
+      {headerHidden ? (
+        // Collapsed: a small tab at the top edge brings the bar back. It sits in
+        // the corner so it never covers the board's playable squares.
+        <button
+          type="button"
+          data-testid="header-toggle"
+          className="header-restore"
+          onClick={() => update({ headerHidden: false })}
+          aria-label={t('common.showHeader')}
+          title={t('common.showHeader')}
+          aria-expanded={false}
+        >
+          <ChevronIcon direction="down" />
+        </button>
+      ) : (
+        <header
+          style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 30,
+            background: 'color-mix(in oklab, var(--surface) 88%, transparent)',
+            backdropFilter: 'blur(10px)',
+            borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-3 px-4 py-2.5 sm:px-6">
+            <Link href="/" className="flex items-center gap-2.5 no-underline" style={{ color: 'inherit' }}>
+              <span
+                aria-hidden
+                style={{
+                  display: 'grid',
+                  placeItems: 'center',
+                  width: '2rem',
+                  height: '2rem',
+                  borderRadius: '0.6rem',
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  flex: 'none',
+                }}
               >
-                {t(item.labelKey)}
-              </Link>
-            ))}
-          </nav>
+                <LogoMark />
+              </span>
+              <span className="flex flex-col leading-none">
+                <span className="text-[0.95rem] font-semibold tracking-tight">{t('app.name')}</span>
+              </span>
+            </Link>
 
-          <div className="ml-auto flex items-center gap-2">
-            <SegmentedControl
-              size="sm"
-              value={settings.locale}
-              onChange={locale => update({ locale })}
-              options={[
-                { value: 'zh', label: '中文' },
-                { value: 'en', label: 'EN' },
-              ]}
-            />
-            <button
-              type="button"
-              className="btn btn-ghost"
-              style={{ padding: '0.35rem 0.5rem' }}
-              onClick={() => update({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
-              aria-label={t('common.theme')}
-              title={t('common.theme')}
-            >
-              <ThemeIcon dark={settings.theme === 'dark'} />
-            </button>
+            <nav className="order-3 flex w-full flex-wrap items-center gap-1 sm:order-none sm:w-auto" aria-label="Main">
+              {NAV.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="nav-link"
+                  aria-current={pathname === item.href ? 'page' : undefined}
+                >
+                  {t(item.labelKey)}
+                </Link>
+              ))}
+            </nav>
+
+            <div className="ml-auto flex items-center gap-2">
+              <SegmentedControl
+                size="sm"
+                value={settings.locale}
+                onChange={locale => update({ locale })}
+                options={[
+                  { value: 'zh', label: '中文' },
+                  { value: 'en', label: 'EN' },
+                ]}
+              />
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ padding: '0.35rem 0.5rem' }}
+                onClick={() => update({ theme: settings.theme === 'dark' ? 'light' : 'dark' })}
+                aria-label={t('common.theme')}
+                title={t('common.theme')}
+              >
+                <ThemeIcon dark={settings.theme === 'dark'} />
+              </button>
+              <button
+                type="button"
+                data-testid="header-toggle"
+                className="btn btn-ghost"
+                style={{ padding: '0.35rem 0.5rem' }}
+                onClick={() => update({ headerHidden: true })}
+                aria-label={t('common.hideHeader')}
+                title={t('common.hideHeader')}
+                aria-expanded
+              >
+                <ChevronIcon direction="up" />
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6">{children}</main>
 
